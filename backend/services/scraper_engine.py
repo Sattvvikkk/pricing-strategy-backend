@@ -412,6 +412,20 @@ def scrape_marketplace_detail(marketplace: str, product: dict, rng) -> dict:
         price_diff = p["price"] - our_price
         price_diff_pct = round((price_diff / our_price) * 100, 1) if our_price else 0
 
+        sku = product.get("sku", "")
+        search_term = sku if sku else p["brand"].replace(" ", "+")
+        
+        if marketplace == "Amazon":
+            dynamic_url = f"https://www.amazon.in/s?k={search_term}"
+        elif marketplace == "Flipkart":
+            dynamic_url = f"https://www.flipkart.com/search?q={search_term}"
+        elif marketplace == "Myntra":
+            dynamic_url = f"https://www.myntra.com/{search_term}"
+        elif marketplace == "Ajio":
+            dynamic_url = f"https://www.ajio.com/search/?text={search_term}"
+        else:
+            dynamic_url = p["url"]
+
         scraped_products.append({
             "brand": p["brand"],
             "name": p["name"],
@@ -421,7 +435,7 @@ def scrape_marketplace_detail(marketplace: str, product: dict, rng) -> dict:
             "rating": p["rating"],
             "review_count": p["review_count"],
             "seller_count": p["seller_count"],
-            "url": p["url"],
+            "url": dynamic_url,
             "delivery": p["delivery"],
             "in_stock": p["in_stock"],
             "specifications": p["specifications"],
