@@ -412,21 +412,7 @@ def scrape_marketplace_detail(marketplace: str, product: dict, rng) -> dict:
         price_diff = p["price"] - our_price
         price_diff_pct = round((price_diff / our_price) * 100, 1) if our_price else 0
 
-        # Generate a search term using Brand + Name since proprietary SKUs (like H&M's) return 0 results on other platforms
-        brand_safe = product.get("brand", "").replace("&", "%26")
-        name_safe = product.get("name", "").replace("&", "%26")
-        search_term = f"{brand_safe}+{name_safe}".strip("+").replace(" ", "+")
-        
-        if marketplace == "Amazon":
-            dynamic_url = f"https://www.amazon.in/s?k={search_term}"
-        elif marketplace == "Flipkart":
-            dynamic_url = f"https://www.flipkart.com/search?q={search_term}"
-        elif marketplace == "Myntra":
-            dynamic_url = f"https://www.myntra.com/{search_term}"
-        elif marketplace == "Ajio":
-            dynamic_url = f"https://www.ajio.com/search/?text={search_term}"
-        else:
-            dynamic_url = p["url"]
+        dynamic_url = p["url"]
 
         scraped_products.append({
             "brand": p["brand"],
