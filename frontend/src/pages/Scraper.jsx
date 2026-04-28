@@ -103,7 +103,8 @@ export default function Scraper() {
 
     // Build URL (no auth required)
     const productId = activeProduct?.id || '';
-    const url = `http://localhost:8000/api/scraper/stream?product_id=${productId}`;
+    const baseUrl = import.meta.env.VITE_API_URL || '';
+    const url = `${baseUrl}/api/scraper/stream?product_id=${productId}`;
 
     // Connect EventSource
     const es = new EventSource(url);
