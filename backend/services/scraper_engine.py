@@ -309,7 +309,7 @@ AJIO_PRODUCTS = [
         "rating": 3.5,
         "review_count": 50,
         "seller_count": 1,
-        "url": "https://www.ajio.com/superdry/brand/BP1232?query=white%20t-shirt&gender=Male",
+        "url": "https://www.ajio.com/superdry-classic-essential-crew-neck-t-shirt/p/464812356_white",
         "delivery": "4-6 days",
         "in_stock": True,
         "specifications": {
@@ -331,7 +331,7 @@ AJIO_PRODUCTS = [
         "rating": 4.1,
         "review_count": 11,
         "seller_count": 1,
-        "url": "https://www.ajio.com/gap/brand/BP2066?query=white%20t-shirt&gender=Male",
+        "url": "https://www.ajio.com/gap-men-solid-regular-fit-t-shirt/p/462153921_white",
         "delivery": "4-6 days",
         "in_stock": True,
         "specifications": {
@@ -353,7 +353,7 @@ AJIO_PRODUCTS = [
         "rating": 4.2,
         "review_count": 234,
         "seller_count": 1,
-        "url": "https://www.ajio.com/marks-spencer/brand/BP1003?query=white%20t-shirt&gender=Male",
+        "url": "https://www.ajio.com/marks--spencer-men-pure-cotton-crew-neck-t-shirt/p/465112321_white",
         "delivery": "5-7 days",
         "in_stock": True,
         "specifications": {
@@ -375,7 +375,7 @@ AJIO_PRODUCTS = [
         "rating": 4.1,
         "review_count": 312,
         "seller_count": 1,
-        "url": "https://www.ajio.com/u-s-polo-assn/brand/BP2419?query=white%20t-shirt&gender=Male",
+        "url": "https://www.ajio.com/u-s-polo-assn-men-solid-crew-neck-plain-white-t-shirt/p/461159981_white",
         "delivery": "4-6 days",
         "in_stock": True,
         "specifications": {
