@@ -204,74 +204,6 @@ AJIO_PRODUCTS = [
         },
         "sizes_available": ["S", "M", "L", "XL"],
     }
-],
-    },
-    {
-        "brand": "GAP",
-        "name": "GAP Men Solid Regular Fit T-Shirt",
-        "price": 800,
-        "original_price": 1999,
-        "discount": 60,
-        "rating": 4.1,
-        "review_count": 11,
-        "seller_count": 1,
-        "url": "https://www.ajio.com/gap-men-solid-regular-fit-t-shirt/p/462153921_white",
-        "delivery": "4-6 days",
-        "in_stock": True,
-        "specifications": {
-            "material": "100% Cotton",
-            "fit": "Regular fit",
-            "neckline": "Round neck",
-            "sleeve": "Short sleeve",
-            "color": "White",
-            "fabric": "Heavyweight cotton",
-        },
-        "sizes_available": ["S", "M", "L", "XL"],
-    },
-    {
-        "brand": "Marks & Spencer",
-        "name": "Marks & Spencer Men Pure Cotton Crew Neck T-Shirt",
-        "price": 799,
-        "original_price": 1299,
-        "discount": 38,
-        "rating": 4.2,
-        "review_count": 234,
-        "seller_count": 1,
-        "url": "https://www.ajio.com/marks--spencer-men-pure-cotton-crew-neck-t-shirt/p/465112321_white",
-        "delivery": "5-7 days",
-        "in_stock": True,
-        "specifications": {
-            "material": "100% Cotton",
-            "fit": "Regular fit",
-            "neckline": "Crew-neck",
-            "sleeve": "Short sleeve",
-            "color": "White",
-            "fabric": "Pure cotton jersey",
-        },
-        "sizes_available": ["S", "M", "L", "XL", "XXL"],
-    },
-    {
-        "brand": "U.S. Polo Assn.",
-        "name": "U.S. Polo Assn. Men Solid Crew Neck Plain White T-Shirt",
-        "price": 849,
-        "original_price": 1799,
-        "discount": 53,
-        "rating": 4.1,
-        "review_count": 312,
-        "seller_count": 1,
-        "url": "https://www.ajio.com/u-s-polo-assn-men-solid-crew-neck-plain-white-t-shirt/p/461159981_white",
-        "delivery": "4-6 days",
-        "in_stock": True,
-        "specifications": {
-            "material": "100% Cotton",
-            "fit": "Regular fit",
-            "neckline": "Crew neck",
-            "sleeve": "Short sleeve",
-            "color": "White",
-            "fabric": "Combed cotton jersey",
-        },
-        "sizes_available": ["S", "M", "L", "XL", "XXL"],
-    },
 ]
 
 ALL_MARKETPLACE_DATA = {
@@ -323,9 +255,9 @@ def scrape_marketplace_detail(marketplace: str, product: dict, rng) -> dict:
 
     # Marketplace-level stats
     prices = [p["price"] for p in scraped_products]
-    avg_price = round(sum(prices) / len(prices))
-    min_price = min(prices)
-    max_price = max(prices)
+    avg_price = round(sum(prices) / len(prices)) if prices else 0
+    min_price = min(prices) if prices else 0
+    max_price = max(prices) if prices else 0
 
     return {
         "marketplace": marketplace,
@@ -337,10 +269,10 @@ def scrape_marketplace_detail(marketplace: str, product: dict, rng) -> dict:
             "max_price": max_price,
             "our_price": our_price,
             "avg_vs_ours": round(((avg_price - our_price) / our_price) * 100, 1) if our_price else 0,
-            "avg_rating": round(sum(p["rating"] for p in scraped_products) / len(scraped_products), 1),
+            "avg_rating": round(sum(p["rating"] for p in scraped_products) / len(scraped_products), 1) if scraped_products else 0,
             "total_reviews": sum(p["review_count"] for p in scraped_products),
-            "avg_discount": round(sum(p["discount"] for p in scraped_products) / len(scraped_products)),
-            "in_stock_pct": round(sum(1 for p in scraped_products if p["in_stock"]) / len(scraped_products) * 100),
+            "avg_discount": round(sum(p["discount"] for p in scraped_products) / len(scraped_products)) if scraped_products else 0,
+            "in_stock_pct": round(sum(1 for p in scraped_products if p["in_stock"]) / len(scraped_products) * 100) if scraped_products else 0,
         },
     }
 
