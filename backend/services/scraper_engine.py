@@ -412,8 +412,10 @@ def scrape_marketplace_detail(marketplace: str, product: dict, rng) -> dict:
         price_diff = p["price"] - our_price
         price_diff_pct = round((price_diff / our_price) * 100, 1) if our_price else 0
 
-        sku = product.get("sku", "")
-        search_term = sku if sku else p["brand"].replace(" ", "+")
+        # Generate a search term using Brand + Name since proprietary SKUs (like H&M's) return 0 results on other platforms
+        brand_safe = product.get("brand", "").replace("&", "%26")
+        name_safe = product.get("name", "").replace("&", "%26")
+        search_term = f"{brand_safe}+{name_safe}".strip("+").replace(" ", "+")
         
         if marketplace == "Amazon":
             dynamic_url = f"https://www.amazon.in/s?k={search_term}"
