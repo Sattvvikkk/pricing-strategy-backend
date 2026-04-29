@@ -27,6 +27,11 @@ def get_dashboard(db: Session = Depends(get_db)):
     processed = _load_processed(db)
     features = get_latest_features(processed)
 
+    # Pin current_price to the product base_price (e.g. ₹799) — not the drifted sim price
+    product = db.query(Product).first()
+    if product:
+        features["current_price"] = float(product.base_price)
+
     # Override with real-time live scraper data
     live_comp_avg = get_competitor_avg_price()
     features["competitor_avg_price"] = live_comp_avg
@@ -43,11 +48,10 @@ def get_dashboard(db: Session = Depends(get_db)):
 
     explanation = generate_explanation(rec, features, vol)
 
-    product = db.query(Product).first()
     return {
         "product": {
             "name": product.name, "base_price": product.base_price,
-            "cost_price": product.cost_price, "current_price": product.current_price,
+            "cost_price": product.cost_price, "current_price": product.base_price,
             "stock": features["stock"], "rating": features["rating"],
         },
         "kpis": {
