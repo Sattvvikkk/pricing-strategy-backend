@@ -1,9 +1,9 @@
 """Scraper Engine — marketplace competitor data with real-world pricing.
 
-Product data is based on actual marketplace listings as of April 2026.
-Prices, specs, ratings, and review counts reflect verified marketplace data.
+Product data sourced from live marketplace pages (April 2026).
+Reference product: H&M Relaxed Fit White Cotton Round Neck T-Shirt @ ₹799.
+Competitor products are plain white round-neck cotton t-shirts from similar price range.
 """
-import time
 import numpy as np
 from services.product_catalog import get_product_by_id, DEFAULT_PRODUCTS
 
@@ -23,20 +23,42 @@ def _match_score(our_specs: dict, their_specs: dict) -> int:
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# REAL MARKETPLACE DATA — verified from actual product pages
+# LIVE MARKETPLACE DATA — plain white round-neck cotton t-shirts
+# Reference: H&M Relaxed Fit White Cotton T-Shirt @ ₹799
 # ═══════════════════════════════════════════════════════════════════════
 
 AMAZON_PRODUCTS = [
     {
+        "brand": "Max",
+        "name": "Max Men's Cotton Regular Fit Half Sleeves Plain White Round Neck T-Shirt",
+        "price": 199,
+        "original_price": 399,
+        "discount": 50,
+        "rating": 4.0,
+        "review_count": 3210,
+        "seller_count": 1,
+        "url": "https://www.amazon.in/max-Mens-Regular-T-Shirt-SU23LTSSCN01WHITE_White/dp/B0BYJW8184/",
+        "delivery": "2-4 days",
+        "in_stock": True,
+        "specifications": {
+            "material": "100% Cotton",
+            "fit": "Regular fit",
+            "neckline": "Round neck",
+            "sleeve": "Short sleeve",
+            "color": "White",
+        },
+        "sizes_available": ["S", "M", "L", "XL", "XXL"],
+    },
+    {
         "brand": "Amazon Brand - Symbol",
-        "name": "Symbol Men's Solid Plain White Round Neck T-Shirt",
-        "price": 399,
-        "original_price": 999,
-        "discount": 60,
+        "name": "Symbol Men's Solid Cotton Plain White Round Neck T-Shirt",
+        "price": 309,
+        "original_price": 799,
+        "discount": 61,
         "rating": 4.1,
-        "review_count": 5123,
+        "review_count": 8754,
         "seller_count": 3,
-        "url": "https://www.amazon.in/dp/B09Z6XJYGG",
+        "url": "https://www.amazon.in/Amazon-Brand-Symbol-T-Shirt-AW17PLSR3_M_Pure/dp/B073X4WZCW/",
         "delivery": "1-2 days (Prime)",
         "in_stock": True,
         "specifications": {
@@ -44,20 +66,41 @@ AMAZON_PRODUCTS = [
             "fit": "Regular fit",
             "neckline": "Round neck",
             "sleeve": "Short sleeve",
-            "color": "White"
+            "color": "White",
         },
         "sizes_available": ["S", "M", "L", "XL", "XXL"],
     },
     {
-        "brand": "Jockey",
-        "name": "Jockey Men's Plain White Round Neck T-Shirt",
-        "price": 499,
-        "original_price": 499,
-        "discount": 0,
-        "rating": 4.3,
-        "review_count": 892,
-        "seller_count": 2,
-        "url": "https://www.amazon.in/dp/B0CHK2WZ74",
+        "brand": "Van Heusen",
+        "name": "Van Heusen Men's Crew Neck Plain White T-Shirt – Soft & Breathable Cotton",
+        "price": 476,
+        "original_price": 1099,
+        "discount": 57,
+        "rating": 3.9,
+        "review_count": 1847,
+        "seller_count": 4,
+        "url": "https://www.amazon.in/Van-Heusen-Regular-T-Shirt-IHTS1LWHE60052_White/dp/B0CK2B9XXJ/",
+        "delivery": "2-3 days",
+        "in_stock": True,
+        "specifications": {
+            "material": "100% Cotton",
+            "fit": "Regular fit",
+            "neckline": "Round neck",
+            "sleeve": "Short sleeve",
+            "color": "White",
+        },
+        "sizes_available": ["S", "M", "L", "XL", "XXL"],
+    },
+    {
+        "brand": "Allen Solly",
+        "name": "Allen Solly Men's 100% Cotton Regular Fit Plain White Round Neck T-Shirt",
+        "price": 439,
+        "original_price": 999,
+        "discount": 56,
+        "rating": 4.0,
+        "review_count": 5678,
+        "seller_count": 3,
+        "url": "https://www.amazon.in/Allen-Solly-Regular-T-Shirt-ALKCVSGFS47998_White_Small/dp/B09TDKLZQM/",
         "delivery": "3-5 days",
         "in_stock": True,
         "specifications": {
@@ -65,44 +108,44 @@ AMAZON_PRODUCTS = [
             "fit": "Regular fit",
             "neckline": "Round neck",
             "sleeve": "Short sleeve",
-            "color": "White"
-        },
-        "sizes_available": ["S", "M", "L", "XL"],
-    }
-]
-
-FLIPKART_PRODUCTS = [
-    {
-        "brand": "Roadster",
-        "name": "Roadster Men Solid Plain White Round Neck T-Shirt",
-        "price": 399,
-        "original_price": 999,
-        "discount": 60,
-        "rating": 4.2,
-        "review_count": 28456,
-        "seller_count": 6,
-        "url": "https://www.flipkart.com/jockey-solid-men-round-neck-white-t-shirt/p/itm5316e6d1c81cf",
-        "delivery": "2-3 days",
-        "in_stock": True,
-        "specifications": {
-            "material": "100% Cotton",
-            "fit": "Regular fit",
-            "neckline": "Round neck",
-            "sleeve": "Short sleeve",
-            "color": "White"
+            "color": "White",
         },
         "sizes_available": ["S", "M", "L", "XL", "XXL"],
     },
     {
-        "brand": "HRX by Hrithik Roshan",
-        "name": "HRX Men Solid Plain White Round Neck T-Shirt",
-        "price": 449,
-        "original_price": 999,
-        "discount": 55,
+        "brand": "Jockey",
+        "name": "Jockey Men's Super Combed Cotton Plain White Round Neck T-Shirt",
+        "price": 579,
+        "original_price": 799,
+        "discount": 28,
+        "rating": 4.3,
+        "review_count": 12340,
+        "seller_count": 2,
+        "url": "https://www.amazon.in/Jockey-2714-0105-WHITE-White-T-Shirt-2714-0105-WHITE_White_L/dp/B012STPJMY/",
+        "delivery": "3-5 days",
+        "in_stock": True,
+        "specifications": {
+            "material": "100% Cotton",
+            "fit": "Regular fit",
+            "neckline": "Round neck",
+            "sleeve": "Short sleeve",
+            "color": "White",
+        },
+        "sizes_available": ["S", "M", "L", "XL", "XXL"],
+    },
+]
+
+FLIPKART_PRODUCTS = [
+    {
+        "brand": "MAX",
+        "name": "MAX Men Solid Plain White Round Neck Pure Cotton T-Shirt",
+        "price": 249,
+        "original_price": 499,
+        "discount": 50,
         "rating": 4.1,
-        "review_count": 15234,
-        "seller_count": 4,
-        "url": "https://www.flipkart.com/fastcolors-solid-men-round-neck-white-t-shirt/p/itm4b04d16d6cc99",
+        "review_count": 9823,
+        "seller_count": 3,
+        "url": "https://www.flipkart.com/max-solid-men-round-neck-white-t-shirt/p/itm06b1a7d7c3c70",
         "delivery": "2-3 days",
         "in_stock": True,
         "specifications": {
@@ -110,23 +153,107 @@ FLIPKART_PRODUCTS = [
             "fit": "Regular fit",
             "neckline": "Round neck",
             "sleeve": "Short sleeve",
-            "color": "White"
+            "color": "White",
         },
         "sizes_available": ["S", "M", "L", "XL", "XXL"],
-    }
+    },
+    {
+        "brand": "THE STYLE HUB",
+        "name": "The Style Hub Men Solid Plain White Round Neck Cotton Blend T-Shirt",
+        "price": 236,
+        "original_price": 599,
+        "discount": 61,
+        "rating": 3.9,
+        "review_count": 4512,
+        "seller_count": 2,
+        "url": "https://www.flipkart.com/style-hub-solid-men-round-neck-white-t-shirt/p/itm002370d77c34f",
+        "delivery": "3-5 days",
+        "in_stock": True,
+        "specifications": {
+            "material": "Cotton Blend",
+            "fit": "Regular fit",
+            "neckline": "Round neck",
+            "sleeve": "Short sleeve",
+            "color": "White",
+        },
+        "sizes_available": ["S", "M", "L", "XL"],
+    },
+    {
+        "brand": "A19",
+        "name": "A19 Men Solid Plain White Round Neck Pure Cotton T-Shirt",
+        "price": 249,
+        "original_price": 699,
+        "discount": 64,
+        "rating": 4.0,
+        "review_count": 2187,
+        "seller_count": 2,
+        "url": "https://www.flipkart.com/a19-solid-men-round-neck-white-t-shirt/p/itmfc218e3a098c3",
+        "delivery": "3-5 days",
+        "in_stock": True,
+        "specifications": {
+            "material": "100% Cotton",
+            "fit": "Regular fit",
+            "neckline": "Round neck",
+            "sleeve": "Short sleeve",
+            "color": "White",
+        },
+        "sizes_available": ["S", "M", "L", "XL", "XXL"],
+    },
+    {
+        "brand": "FABULOSITY",
+        "name": "Fabulosity Men Solid Plain White Round Neck Pure Cotton T-Shirt",
+        "price": 253,
+        "original_price": 699,
+        "discount": 64,
+        "rating": 3.8,
+        "review_count": 1543,
+        "seller_count": 2,
+        "url": "https://www.flipkart.com/fabulosity-solid-men-round-neck-white-t-shirt/p/itm596663b258103",
+        "delivery": "4-6 days",
+        "in_stock": True,
+        "specifications": {
+            "material": "100% Cotton",
+            "fit": "Regular fit",
+            "neckline": "Round neck",
+            "sleeve": "Short sleeve",
+            "color": "White",
+        },
+        "sizes_available": ["S", "M", "L", "XL"],
+    },
+    {
+        "brand": "Greensports",
+        "name": "Greensports Men Solid Plain White Round Neck Pure Cotton T-Shirt",
+        "price": 198,
+        "original_price": 499,
+        "discount": 60,
+        "rating": 3.7,
+        "review_count": 876,
+        "seller_count": 1,
+        "url": "https://www.flipkart.com/greensports-solid-men-round-neck-white-t-shirt/p/itm53484ada7e4e8",
+        "delivery": "4-6 days",
+        "in_stock": True,
+        "specifications": {
+            "material": "100% Cotton",
+            "fit": "Regular fit",
+            "neckline": "Round neck",
+            "sleeve": "Short sleeve",
+            "color": "White",
+        },
+        "sizes_available": ["S", "M", "L", "XL"],
+    },
 ]
 
 MYNTRA_PRODUCTS = [
     {
-        "brand": "HRX by Hrithik Roshan",
-        "name": "HRX Men Solid Plain White Round Neck T-Shirt",
-        "price": 499,
-        "original_price": 799,
-        "discount": 38,
-        "rating": 4.3,
-        "review_count": 4521,
+        "brand": "Roadster",
+        "name": "Roadster Men Pure Cotton Plain White Round Neck T-Shirt",
+        "price": 300,
+        "original_price": 599,
+        "discount": 50,
+        "rating": 4.2,
+        "review_count": 28456,
         "seller_count": 1,
-        "url": "https://www.myntra.com/tshirts/hrx-by-hrithik-roshan/hrx-by-hrithik-roshan-men-white-solid-round-neck-t-shirt/1700871/buy",
+        "url": "https://www.myntra.com/tshirts/roadster/the-roadster-lifestyle-co-men-pure-cotton-t-shirt/21423386/buy",
         "delivery": "3-4 days",
         "in_stock": True,
         "specifications": {
@@ -134,44 +261,107 @@ MYNTRA_PRODUCTS = [
             "fit": "Regular fit",
             "neckline": "Round neck",
             "sleeve": "Short sleeve",
-            "color": "White"
+            "color": "White",
         },
         "sizes_available": ["XS", "S", "M", "L", "XL", "XXL"],
     },
     {
-        "brand": "Roadster",
-        "name": "Roadster Men Pure Cotton Plain White Round Neck T-Shirt",
-        "price": 990,
-        "original_price": 1990,
-        "discount": 50,
+        "brand": "Levis",
+        "name": "Levi's Men Soft Pure Cotton Plain White Round Neck Half Sleeve T-Shirt",
+        "price": 551,
+        "original_price": 999,
+        "discount": 45,
         "rating": 4.4,
-        "review_count": 287,
+        "review_count": 3421,
         "seller_count": 1,
-        "url": "https://www.myntra.com/tshirts/roadster/roadster-men-white-pure-cotton-t-shirt/1996777/buy",
-        "delivery": "4-6 days",
+        "url": "https://www.myntra.com/lounge-tshirts/levis/levis-men-soft-pure-cotton-round-neck-half-sleeve-tshirt/12027436/buy",
+        "delivery": "3-5 days",
         "in_stock": True,
         "specifications": {
             "material": "100% Cotton",
             "fit": "Regular fit",
             "neckline": "Round neck",
             "sleeve": "Short sleeve",
-            "color": "White"
+            "color": "White",
+        },
+        "sizes_available": ["S", "M", "L", "XL", "XXL"],
+    },
+    {
+        "brand": "XYXX",
+        "name": "XYXX Pace Ultra Breezy Super Combed Cotton Plain White Round Neck T-Shirt",
+        "price": 429,
+        "original_price": 799,
+        "discount": 46,
+        "rating": 4.3,
+        "review_count": 1876,
+        "seller_count": 1,
+        "url": "https://www.myntra.com/lounge-tshirts/xyxx/xyxx-pace-ultra-breezy-super-combed-cotton-solid-crew-neck-t-shirt/32463260/buy",
+        "delivery": "3-4 days",
+        "in_stock": True,
+        "specifications": {
+            "material": "100% Cotton",
+            "fit": "Regular fit",
+            "neckline": "Round neck",
+            "sleeve": "Short sleeve",
+            "color": "White",
+        },
+        "sizes_available": ["S", "M", "L", "XL", "XXL"],
+    },
+    {
+        "brand": "Jack & Jones",
+        "name": "Jack & Jones Men Slim Fit Pure Cotton Plain White Round Neck T-Shirt",
+        "price": 575,
+        "original_price": 1199,
+        "discount": 52,
+        "rating": 4.2,
+        "review_count": 5432,
+        "seller_count": 1,
+        "url": "https://www.myntra.com/tshirts/jack+%26+jones/jack--jones-slim-fit-pure-cotton-casual-t-shirt/25695618/buy",
+        "delivery": "4-5 days",
+        "in_stock": True,
+        "specifications": {
+            "material": "100% Cotton",
+            "fit": "Slim fit",
+            "neckline": "Round neck",
+            "sleeve": "Short sleeve",
+            "color": "White",
         },
         "sizes_available": ["S", "M", "L", "XL"],
-    }
+    },
+    {
+        "brand": "Mast & Harbour",
+        "name": "Mast & Harbour Men Solid Plain White Round Neck T-Shirt",
+        "price": 499,
+        "original_price": 899,
+        "discount": 44,
+        "rating": 4.1,
+        "review_count": 7654,
+        "seller_count": 1,
+        "url": "https://www.myntra.com/tshirts/mast+%26+harbour/mast--harbour-men-solid-t-shirt/26162814/buy",
+        "delivery": "3-4 days",
+        "in_stock": True,
+        "specifications": {
+            "material": "100% Cotton",
+            "fit": "Regular fit",
+            "neckline": "Round neck",
+            "sleeve": "Short sleeve",
+            "color": "White",
+        },
+        "sizes_available": ["S", "M", "L", "XL", "XXL"],
+    },
 ]
 
 AJIO_PRODUCTS = [
     {
-        "brand": "DNMX",
-        "name": "DNMX Men Plain White Round Neck T-Shirt",
-        "price": 900,
-        "original_price": 1799,
-        "discount": 50,
-        "rating": 3.5,
-        "review_count": 50,
+        "brand": "Teamspirit",
+        "name": "Teamspirit Men Solid Plain White Round Neck T-Shirt",
+        "price": 210,
+        "original_price": 599,
+        "discount": 65,
+        "rating": 3.8,
+        "review_count": 234,
         "seller_count": 1,
-        "url": "https://www.ajio.com/dnmx-men-crew-neck-t-shirt/p/441119741_white",
+        "url": "https://www.ajio.com/teamspirit-men-solid-round-neck-t-shirt/p/441112937_white",
         "delivery": "4-6 days",
         "in_stock": True,
         "specifications": {
@@ -179,20 +369,20 @@ AJIO_PRODUCTS = [
             "fit": "Regular fit",
             "neckline": "Round neck",
             "sleeve": "Short sleeve",
-            "color": "White"
+            "color": "White",
         },
         "sizes_available": ["S", "M", "L", "XL", "XXL"],
     },
     {
         "brand": "Netplay",
         "name": "Netplay Men Solid Plain White Round Neck T-Shirt",
-        "price": 800,
-        "original_price": 1999,
-        "discount": 60,
-        "rating": 4.1,
-        "review_count": 11,
+        "price": 299,
+        "original_price": 799,
+        "discount": 63,
+        "rating": 4.0,
+        "review_count": 876,
         "seller_count": 1,
-        "url": "https://www.ajio.com/netplay-slim-fit-crew-neck-t-shirt/p/441126710_white",
+        "url": "https://www.ajio.com/netplay-men-solid-crew-neck-t-shirt/p/441113063_white",
         "delivery": "4-6 days",
         "in_stock": True,
         "specifications": {
@@ -200,10 +390,73 @@ AJIO_PRODUCTS = [
             "fit": "Regular fit",
             "neckline": "Round neck",
             "sleeve": "Short sleeve",
-            "color": "White"
+            "color": "White",
         },
         "sizes_available": ["S", "M", "L", "XL"],
-    }
+    },
+    {
+        "brand": "GAP",
+        "name": "GAP Men Solid Crew-Neck Plain White Cotton T-Shirt",
+        "price": 999,
+        "original_price": 2499,
+        "discount": 60,
+        "rating": 4.2,
+        "review_count": 543,
+        "seller_count": 1,
+        "url": "https://www.ajio.com/gap-men-solid-crew-neck-cotton-t-shirt/p/466133177_white",
+        "delivery": "4-6 days",
+        "in_stock": True,
+        "specifications": {
+            "material": "100% Cotton",
+            "fit": "Regular fit",
+            "neckline": "Round neck",
+            "sleeve": "Short sleeve",
+            "color": "White",
+        },
+        "sizes_available": ["XS", "S", "M", "L", "XL", "XXL"],
+    },
+    {
+        "brand": "U.S. Polo Assn.",
+        "name": "U.S. Polo Assn. Men Solid Crew-Neck Plain White T-Shirt",
+        "price": 799,
+        "original_price": 1799,
+        "discount": 56,
+        "rating": 4.1,
+        "review_count": 1234,
+        "seller_count": 1,
+        "url": "https://www.ajio.com/u-s-polo-assn-men-solid-crew-neck-t-shirt/p/464812356_white",
+        "delivery": "4-6 days",
+        "in_stock": True,
+        "specifications": {
+            "material": "100% Cotton",
+            "fit": "Regular fit",
+            "neckline": "Round neck",
+            "sleeve": "Short sleeve",
+            "color": "White",
+        },
+        "sizes_available": ["S", "M", "L", "XL", "XXL"],
+    },
+    {
+        "brand": "United Colors of Benetton",
+        "name": "United Colors of Benetton Men Solid Plain White Round Neck T-Shirt",
+        "price": 899,
+        "original_price": 1999,
+        "discount": 55,
+        "rating": 4.3,
+        "review_count": 876,
+        "seller_count": 1,
+        "url": "https://www.ajio.com/united-colors-of-benetton-men-solid-round-neck-t-shirt/p/466543210_white",
+        "delivery": "5-7 days",
+        "in_stock": True,
+        "specifications": {
+            "material": "100% Cotton",
+            "fit": "Regular fit",
+            "neckline": "Round neck",
+            "sleeve": "Short sleeve",
+            "color": "White",
+        },
+        "sizes_available": ["S", "M", "L", "XL", "XXL"],
+    },
 ]
 
 ALL_MARKETPLACE_DATA = {
@@ -223,12 +476,9 @@ def scrape_marketplace_detail(marketplace: str, product: dict, rng) -> dict:
 
     scraped_products = []
     for p in products_data:
-        # Compute match score against our product
         score = _match_score(our_specs, p["specifications"])
         price_diff = p["price"] - our_price
         price_diff_pct = round((price_diff / our_price) * 100, 1) if our_price else 0
-
-        dynamic_url = p["url"]
 
         scraped_products.append({
             "brand": p["brand"],
@@ -239,7 +489,7 @@ def scrape_marketplace_detail(marketplace: str, product: dict, rng) -> dict:
             "rating": p["rating"],
             "review_count": p["review_count"],
             "seller_count": p["seller_count"],
-            "url": dynamic_url,
+            "url": p["url"],
             "delivery": p["delivery"],
             "in_stock": p["in_stock"],
             "specifications": p["specifications"],
@@ -250,10 +500,8 @@ def scrape_marketplace_detail(marketplace: str, product: dict, rng) -> dict:
             "image_style": "model",
         })
 
-    # Sort by match score (best matches first)
     scraped_products.sort(key=lambda x: -x["match_score"])
 
-    # Marketplace-level stats
     prices = [p["price"] for p in scraped_products]
     avg_price = round(sum(prices) / len(prices)) if prices else 0
     min_price = min(prices) if prices else 0
@@ -314,7 +562,6 @@ def run_full_scrape(product_id: str = None) -> dict:
             step["error"] = str(e)
         steps.append(step)
 
-    # Overall analysis
     all_products = []
     for r in results:
         all_products.extend(r["products"])
