@@ -50,6 +50,7 @@ from routes.marketplace import router as marketplace_router
 from routes.strategy import router as strategy_router
 from routes.ai_copilot import router as ai_copilot_router
 from routes.intelligence import router as intelligence_router
+from routes.ml_predictions import router as ml_predictions_router
 
 
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
@@ -100,6 +101,7 @@ app.include_router(strategy_router)
 app.include_router(marketplace_router)
 app.include_router(ai_copilot_router)
 app.include_router(intelligence_router)
+app.include_router(ml_predictions_router)
 
 
 # ── Health check ─────────────────────────────────────────────────────────────

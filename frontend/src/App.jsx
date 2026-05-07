@@ -15,6 +15,7 @@ import MarketplaceInsights from './pages/MarketplaceInsights';
 import ProductDetails from './pages/ProductDetails';
 import StrategyBuilder from './pages/StrategyBuilder';
 import IntelligenceHub from './pages/IntelligenceHub';
+import MLPredictions from './pages/MLPredictions';
 
 /** Wraps a page in <AppLayout>. ProtectedRoute is a no-op passthrough. */
 function AppPage({ children }) {
@@ -43,6 +44,7 @@ export default function App() {
             <Route path="/app/scraper"          element={<AppPage><Scraper /></AppPage>} />
             <Route path="/app/marketplace"      element={<AppPage><MarketplaceInsights /></AppPage>} />
             <Route path="/app/products/:id"     element={<AppPage><ProductDetails /></AppPage>} />
+            <Route path="/app/ml"               element={<AppPage><MLPredictions /></AppPage>} />
 
             {/* ── Fallback ──────────────────────────────────────── */}
             <Route path="*" element={<Navigate to="/app" replace />} />

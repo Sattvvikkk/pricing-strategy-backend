@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
-  LayoutDashboard, BarChart2, Radio, Globe, BrainCircuit, Cpu,
+  LayoutDashboard, BarChart2, Radio, Globe, BrainCircuit, Cpu, FlaskConical,
 } from 'lucide-react';
 
 import { useAuth } from '../../context/AuthContext';
@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { to: '/app',                  label: 'Dashboard',        Icon: LayoutDashboard, end: true },
   { to: '/app/analytics',        label: 'Analytics',        Icon: BarChart2 },
   { to: '/app/intelligence',     label: 'Intelligence Hub', Icon: Cpu },
+  { to: '/app/ml',               label: 'ML Engine',        Icon: FlaskConical },
   { to: '/app/strategy',         label: 'Strategy Builder', Icon: BrainCircuit },
   { to: '/app/scraper',          label: 'Scraper',          Icon: Radio },
   { to: '/app/marketplace',      label: 'Marketplace',      Icon: Globe },
