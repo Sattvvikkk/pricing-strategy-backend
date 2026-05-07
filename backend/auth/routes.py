@@ -1,44 +1,88 @@
-"""Auth routes — signup and login."""
+"""Auth routes — register, login, and me."""
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
-import bcrypt
+from jose import JWTError
+from pydantic import BaseModel
 
 from database import get_db
 from models import User
-from schemas import UserCreate, UserLogin, Token, UserOut
-from auth.jwt_handler import create_access_token
+from auth.utils import hash_password, verify_password, create_access_token, decode_token
 
-router = APIRouter(prefix="/auth", tags=["Authentication"])
-
-
-def hash_password(password: str) -> str:
-    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+router = APIRouter(prefix="/api/auth", tags=["Authentication"])
+bearer_scheme = HTTPBearer(auto_error=False)
 
 
-def verify_password(plain: str, hashed: str) -> bool:
-    return bcrypt.checkpw(plain.encode("utf-8"), hashed.encode("utf-8"))
+# ── Pydantic schemas (local, minimal) ────────────────────────────────────────
+
+class RegisterRequest(BaseModel):
+    email: str
+    password: str
 
 
-@router.post("/signup", response_model=UserOut, status_code=201)
-def signup(user: UserCreate, db: Session = Depends(get_db)):
-    existing = db.query(User).filter(User.email == user.email).first()
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+
+# ── Dependency: get current user from Bearer token ────────────────────────────
+
+def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
+    db: Session = Depends(get_db),
+) -> User:
+    if not credentials:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    try:
+        payload = decode_token(credentials.credentials)
+        email: str = payload.get("sub")
+        if email is None:
+            raise HTTPException(status_code=401, detail="Invalid token payload")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Token is invalid or expired")
+
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+    return user
+
+
+# ── POST /api/auth/register ───────────────────────────────────────────────────
+
+@router.post("/register", status_code=201)
+def register(payload: RegisterRequest, db: Session = Depends(get_db)):
+    existing = db.query(User).filter(User.email == payload.email).first()
     if existing:
         raise HTTPException(status_code=400, detail="Email already registered")
-    db_user = User(
-        email=user.email,
-        hashed_password=hash_password(user.password),
-        full_name=user.full_name,
+
+    user = User(
+        email=payload.email,
+        hashed_password=hash_password(payload.password),
     )
-    db.add(db_user)
+    db.add(user)
     db.commit()
-    db.refresh(db_user)
-    return db_user
+    db.refresh(user)
+    return {"message": "Account created", "email": user.email}
 
 
-@router.post("/login", response_model=Token)
-def login(user: UserLogin, db: Session = Depends(get_db)):
-    db_user = db.query(User).filter(User.email == user.email).first()
-    if not db_user or not verify_password(user.password, db_user.hashed_password):
+# ── POST /api/auth/login ──────────────────────────────────────────────────────
+
+@router.post("/login")
+def login(payload: LoginRequest, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == payload.email).first()
+    if not user or not verify_password(payload.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid email or password")
-    token = create_access_token({"sub": db_user.email, "user_id": db_user.id})
+
+    token = create_access_token({"sub": user.email, "user_id": user.id})
     return {"access_token": token, "token_type": "bearer"}
+
+
+# ── GET /api/auth/me ──────────────────────────────────────────────────────────
+
+@router.get("/me")
+def me(current_user: User = Depends(get_current_user)):
+    return {
+        "id": current_user.id,
+        "email": current_user.email,
+        "organization_id": current_user.organization_id,
+    }

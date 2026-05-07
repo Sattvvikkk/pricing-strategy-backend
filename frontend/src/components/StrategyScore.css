@@ -1,0 +1,339 @@
+/* StrategyScore Styles */
+
+.strategy-score {
+  background: linear-gradient(135deg, #1a1a1a 0%, #242424 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Score Header */
+.score-header {
+  padding-bottom: 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.overall-score-section h3 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 16px 0;
+}
+
+.overall-score {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.overall-info {
+  flex: 1;
+}
+
+.overall-label {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0 0 8px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.overall-recommendation {
+  font-size: 1.4rem;
+  font-weight: 800;
+  margin: 0 0 8px 0;
+  letter-spacing: -0.01em;
+}
+
+.overall-hint {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Gauge */
+.gauge {
+  flex-shrink: 0;
+}
+
+.gauge-large {
+  width: 140px;
+  height: 140px;
+}
+
+.gauge-medium {
+  width: 100px;
+  height: 100px;
+}
+
+.gauge-small {
+  width: 70px;
+  height: 70px;
+}
+
+.gauge-svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+}
+
+.gauge-text {
+  font-size: 28px;
+  font-weight: 800;
+  fill: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Score Cards Grid */
+.score-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.score-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 16px;
+  transition: all 0.2s ease;
+}
+
+.score-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.card-header h4 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+}
+
+.card-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.card-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.card-label {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.card-value {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.card-hint {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+  font-style: italic;
+}
+
+/* Level Badge */
+.level-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 2px solid;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  width: fit-content;
+}
+
+.level-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Risk Flags */
+.risk-flags {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.risk-flag-item {
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  font-size: 0.75rem;
+}
+
+/* Specific Card Colors */
+.revenue-card {
+  border-top: 3px solid #3B82F6;
+}
+
+.risk-card {
+  border-top: 3px solid #EC4899;
+}
+
+.competitive-card {
+  border-top: 3px solid #F59E0B;
+}
+
+.scalability-card {
+  border-top: 3px solid #22C55E;
+}
+
+/* Score Insights */
+.score-insights {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.insight {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.insight-label {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 600;
+}
+
+.insight-value {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .overall-score {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .score-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .strategy-score {
+    padding: 16px;
+    gap: 16px;
+  }
+
+  .score-header {
+    padding-bottom: 16px;
+  }
+
+  .overall-score {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 16px;
+  }
+
+  .overall-info {
+    width: 100%;
+  }
+
+  .score-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .card-content {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .gauge-large {
+    width: 100px;
+    height: 100px;
+  }
+
+  .score-insights {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .strategy-score {
+    padding: 12px;
+  }
+
+  .overall-recommendation {
+    font-size: 1.2rem;
+  }
+
+  .score-cards {
+    gap: 12px;
+  }
+
+  .score-card {
+    padding: 12px;
+  }
+
+  .card-value {
+    font-size: 1.1rem;
+  }
+
+  .gauge-large {
+    width: 80px;
+    height: 80px;
+  }
+
+  .gauge-text {
+    font-size: 20px;
+  }
+}

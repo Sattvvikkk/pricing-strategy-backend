@@ -1,1 +1,36 @@
+# Vercel
 .vercel
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+
+# Environment variables
+.env
+.env.*
+!.env.production
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Node / Frontend
+node_modules/
+frontend/dist/
+frontend/.cache/
+
+# IDE / OS
+.DS_Store
+.kilo/
+*.log
+Thumbs.db

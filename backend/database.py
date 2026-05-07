@@ -1,11 +1,15 @@
-"""SQLAlchemy database setup — works with SQLite (default) or PostgreSQL."""
+"""SQLAlchemy database setup — PostgreSQL via DATABASE_URL env var."""
+import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
-from config import DATABASE_URL
+from dotenv import load_dotenv
 
-connect_args = {}
-if DATABASE_URL.startswith("sqlite"):
-    connect_args = {"check_same_thread": False}
+load_dotenv()
+
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./priceengine.db")
+
+# psycopg2 requires no connect_args for PostgreSQL; SQLite needs check_same_thread
+connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
 
 engine = create_engine(DATABASE_URL, connect_args=connect_args)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -13,7 +17,7 @@ Base = declarative_base()
 
 
 def get_db():
-    """FastAPI dependency — yields a DB session."""
+    """FastAPI dependency — yields a DB session and closes it after the request."""
     db = SessionLocal()
     try:
         yield db
@@ -22,5 +26,7 @@ def get_db():
 
 
 def init_db():
-    """Create all tables."""
+    """Create all tables defined on Base."""
+    # Import all models so SQLAlchemy registers them before create_all
+    import models  # noqa: F401
     Base.metadata.create_all(bind=engine)

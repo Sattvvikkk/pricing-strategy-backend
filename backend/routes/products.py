@@ -1,10 +1,21 @@
-"""Product API routes — catalog listing, product details, and URL lookup."""
-from fastapi import APIRouter, Depends
+"""Products API routes — catalog, detail, and URL lookup.
+Spec endpoints:
+  GET  /api/products
+  GET  /api/products/{product_id}
+  POST /api/products/lookup-url
+  GET  /api/products/{product_id}/sales-history
+"""
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
-from typing import Optional
+from sqlalchemy.orm import Session
 
-from auth.jwt_handler import get_current_user
-from services.product_catalog import get_all_products, get_product_by_id, lookup_product_by_url
+from database import get_db
+from models import SalesHistory
+from services.product_catalog import (
+    get_all_products,
+    get_product_by_id,
+    get_products_by_category,
+)
 
 router = APIRouter(prefix="/api/products", tags=["Products"])
 
@@ -13,37 +24,60 @@ class ProductURLRequest(BaseModel):
     url: str
 
 
-@router.get("/catalog")
-def list_products():
-    """Return all available products in the catalog."""
-    products = get_all_products()
-    # Return lightweight list for sidebar selector
-    return {
-        "products": [
-            {
-                "id": p["id"],
-                "name": p["name"],
-                "brand": p["brand"],
-                "price": p["price"],
-                "image": p["image"],
-                "category": p["category"],
-            }
-            for p in products
-        ]
-    }
+@router.get("")
+def list_products(category: str | None = None):
+    """Return all 20 Vouge Studio products, optionally filtered by category."""
+    if category:
+        products = get_products_by_category(category)
+    else:
+        products = get_all_products()
+    return {"products": products}
 
 
-@router.get("/detail/{product_id}")
-def get_product_detail(product_id: str):
-    """Return full product details including specs, sizes, care instructions."""
+@router.get("/{product_id}")
+def get_product(product_id: str):
+    """Return full product details for one SKU."""
     product = get_product_by_id(product_id)
     if not product:
-        return {"error": "Product not found"}
+        raise HTTPException(status_code=404, detail="Product not found")
     return {"product": product}
 
 
-@router.post("/lookup")
-def lookup_url(req: ProductURLRequest):
-    """Look up a product by its URL and return its details."""
-    product = lookup_product_by_url(req.url)
-    return {"product": product}
+@router.post("/lookup-url")
+def lookup_by_url(req: ProductURLRequest):
+    """Search the catalog for a product whose name or brand appears in the URL."""
+    url_lower = req.url.lower()
+    for product in get_all_products():
+        # Match by product name words in URL
+        name_words = product["name"].lower().split()
+        if any(word in url_lower for word in name_words if len(word) > 3):
+            return {"product": product}
+        # Match by SKU
+        if product["sku"].lower() in url_lower:
+            return {"product": product}
+        # Match by brand
+        if product["brand"].lower() in url_lower:
+            return {"product": product}
+    raise HTTPException(status_code=404, detail="Could not match product for this URL")
+
+
+@router.get("/{product_id}/sales-history")
+def get_sales_history(product_id: str, db: Session = Depends(get_db)):
+    """Return 90-day sales history for a product."""
+    sales_q = db.query(SalesHistory).filter(SalesHistory.product_id == product_id)
+    sales = sales_q.order_by(SalesHistory.date.desc()).limit(90).all()
+    
+    if not sales:
+        return {"data": []}
+    
+    data = []
+    for sale in sales:
+        data.append({
+            "date": sale.date.strftime("%Y-%m-%d") if sale.date else None,
+            "price": float(sale.price),
+            "units_sold": int(sale.units_sold),
+            "revenue": float(sale.revenue),
+        })
+    
+    # Reverse to show oldest first
+    return {"data": list(reversed(data))}

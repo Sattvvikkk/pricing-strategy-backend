@@ -1,0 +1,22 @@
+{
+  "type": "web_service",
+  "name": "pricing-engine-backend",
+  "repo": "https://github.com/Sattvvikkk/pricing-strategy-backend",
+  "autoDeploy": "yes",
+  "branch": "master",
+  "serviceDetails": {
+    "env": "python",
+    "plan": "free",
+    "region": "oregon",
+    "envSpecificDetails": {
+      "buildCommand": "cd backend && pip install -r requirements.txt",
+      "startCommand": "cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT"
+    },
+    "envVars": [
+      {
+        "key": "PYTHON_VERSION",
+        "value": "3.12.0"
+      }
+    ]
+  }
+}
