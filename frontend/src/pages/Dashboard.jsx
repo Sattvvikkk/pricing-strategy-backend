@@ -8,10 +8,13 @@ import {
   TrendingUp, TrendingDown,
 } from 'lucide-react';
 
+import { motion } from 'framer-motion';
 import API from '../api/client';
 import { useProduct } from '../context/ProductContext';
 import StrategyCard from '../components/StrategyCard';
-import LiveInsightsFeed from '../components/LiveInsightsFeed';
+import ProductIntelligenceGrid from '../components/ProductIntelligenceGrid';
+import AnimatedCounter from '../components/AnimatedCounter';
+import { fadeUp, stagger } from '../motion/tokens';
 
 const TOOLTIP_STYLE = {
   background: '#1A1A1A',
@@ -42,9 +45,9 @@ function ChangePill({ value, suffix = '%' }) {
   );
 }
 
-function KpiTile({ Icon, label, value, change, loading, prefix = '', suffix = '' }) {
+function KpiTile({ Icon, label, numericValue, change, loading, prefix = '', suffix = '', decimals = 0 }) {
   return (
-    <div className="pe-kpi">
+    <motion.div className="pe-kpi" variants={fadeUp}>
       <div className="pe-kpi__head">
         <span className="pe-kpi__label">{label}</span>
         <Icon size={16} className="pe-kpi__icon" />
@@ -52,12 +55,17 @@ function KpiTile({ Icon, label, value, change, loading, prefix = '', suffix = ''
       <div className="pe-kpi__value">
         {loading
           ? <Skeleton width="70%" height={28} />
-          : <>{prefix}{value}{suffix}</>}
+          : <AnimatedCounter
+              value={numericValue || 0}
+              prefix={prefix}
+              suffix={suffix}
+              decimals={decimals}
+            />}
       </div>
       <div className="pe-kpi__change-row">
         {loading ? <Skeleton width="40%" height={14} /> : <ChangePill value={change} />}
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -173,40 +181,46 @@ export default function Dashboard() {
       {/* Row 1 — Strategy Card */}
       <StrategyCard productId={productId} />
 
-      {/* Live Intelligence Feed */}
-      <LiveInsightsFeed />
-
       {/* Row 2 — KPI tiles */}
-      <div className="pe-dashboard__kpis">
+      <motion.div
+        className="pe-dashboard__kpis"
+        variants={stagger(0.06, 0.05)}
+        initial="initial"
+        animate="animate"
+      >
         <KpiTile
           Icon={IndianRupee}
           label="Today's Revenue"
           prefix="₹"
-          value={todaysRevenue?.toLocaleString('en-IN') ?? 0}
+          numericValue={todaysRevenue}
           change={kpis?.revenue_impact_pct}
           loading={loading || !kpis}
         />
         <KpiTile
           Icon={Percent}
           label="Gross Margin"
-          value={grossMargin != null ? grossMargin.toFixed(1) : 0}
+          numericValue={grossMargin}
           suffix="%"
+          decimals={1}
           loading={loading || grossMargin == null}
         />
         <KpiTile
           Icon={Package}
           label="Units Sold Today"
-          value={unitsSoldToday != null ? Math.round(unitsSoldToday) : 0}
+          numericValue={unitsSoldToday != null ? Math.round(unitsSoldToday) : 0}
           loading={loading || unitsSoldToday == null}
         />
         <KpiTile
           Icon={Users}
           label="Competitor Avg Price"
           prefix="₹"
-          value={competitorAvg?.toLocaleString('en-IN') ?? 0}
+          numericValue={competitorAvg}
           loading={loading || competitorAvg == null}
         />
-      </div>
+      </motion.div>
+
+      {/* Product Intelligence Grid */}
+      <ProductIntelligenceGrid />
 
       {/* Row 3 — Forecast + Scenario */}
       <div className="pe-dashboard__row3">

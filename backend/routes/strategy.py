@@ -382,3 +382,72 @@ def get_strategy(product_id: str, db: Session = Depends(get_db)):
         expected_outcome=expected_outcome,
         generated_at=datetime.now(timezone.utc),
     )
+
+
+# ── New: Strategy Builder (multi-candidate generator) ────────────────────────
+
+from pydantic import BaseModel
+from services.product_enrichment import enrich_product
+from services.ml_orchestrator import run_analysis as ml_run_analysis
+from services.strategy_builder import generate_strategies
+
+
+class StrategyGenerateRequest(BaseModel):
+    product_id: str
+    objective: str = "maximize_revenue"   # maximize_revenue | maximize_margin | reduce_inventory | win_market_share
+    horizon_days: int = 30
+    aggressiveness: float = 0.5            # 0..1
+    top_k: int = 5
+
+
+@router.post("/generate")
+def generate_strategy_candidates(req: StrategyGenerateRequest, db: Session = Depends(get_db)):
+    """Generate ranked candidate pricing strategies for a product.
+
+    Returns up to `top_k` strategies sorted by `objective_score`. Each strategy
+    contains a full scorecard (price, expected units/revenue/margin, risk,
+    confidence, drivers, rationale).
+    """
+    base = get_product_by_id(req.product_id)
+    if not base:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    enriched = enrich_product(base)
+    sales_q = db.query(SalesHistory).filter(SalesHistory.product_id == req.product_id)
+    sales_df = pd.read_sql(sales_q.statement, db.bind)
+    if not sales_df.empty:
+        sales_df["date"] = pd.to_datetime(sales_df["date"]).dt.strftime("%Y-%m-%d")
+    comp_q = db.query(CompetitorData).filter(CompetitorData.product_id == req.product_id)
+    comp_df = pd.read_sql(comp_q.statement, db.bind)
+
+    ml_output = ml_run_analysis(enriched, sales_df=sales_df, comp_df=comp_df)
+    return generate_strategies(
+        enriched,
+        ml_output,
+        objective=req.objective,
+        horizon_days=req.horizon_days,
+        aggressiveness=req.aggressiveness,
+        top_k=req.top_k,
+    )
+
+
+@router.get("/generate/{product_id}")
+def generate_strategy_candidates_get(
+    product_id: str,
+    objective: str = "maximize_revenue",
+    horizon_days: int = 30,
+    aggressiveness: float = 0.5,
+    top_k: int = 5,
+    db: Session = Depends(get_db),
+):
+    """GET variant for easy frontend fetching."""
+    return generate_strategy_candidates(
+        StrategyGenerateRequest(
+            product_id=product_id,
+            objective=objective,
+            horizon_days=horizon_days,
+            aggressiveness=aggressiveness,
+            top_k=top_k,
+        ),
+        db,
+    )

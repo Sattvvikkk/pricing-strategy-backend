@@ -16,6 +16,7 @@ from services.product_catalog import (
     get_product_by_id,
     get_products_by_category,
 )
+from services.product_enrichment import enrich_product
 
 router = APIRouter(prefix="/api/products", tags=["Products"])
 
@@ -25,21 +26,30 @@ class ProductURLRequest(BaseModel):
 
 
 @router.get("")
-def list_products(category: str | None = None):
-    """Return all 20 Vouge Studio products, optionally filtered by category."""
+def list_products(category: str | None = None, enriched: bool = True):
+    """Return all Vouge Studio products, optionally filtered by category.
+
+    By default returns the rich enterprise model (cost_breakup, inventory,
+    engagement metrics, risk flags, etc.). Pass enriched=false to get the
+    legacy slim payload.
+    """
     if category:
         products = get_products_by_category(category)
     else:
         products = get_all_products()
+    if enriched:
+        products = [enrich_product(p) for p in products]
     return {"products": products}
 
 
 @router.get("/{product_id}")
-def get_product(product_id: str):
-    """Return full product details for one SKU."""
+def get_product(product_id: str, enriched: bool = True):
+    """Return full product details for one SKU (enriched by default)."""
     product = get_product_by_id(product_id)
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
+    if enriched:
+        product = enrich_product(product)
     return {"product": product}
 
 

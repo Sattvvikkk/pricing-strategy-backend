@@ -55,6 +55,8 @@ from routes.competitor_reaction import router as competitor_reaction_router
 from routes.inventory_optimization import router as inventory_optimization_router
 from routes.customer_segmentation import router as customer_segmentation_router
 from routes.scenario_simulator import router as scenario_simulator_router
+from routes.ai_chat import router as ai_chat_router
+from routes.engine import router as pricing_engine_router
 
 
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
@@ -110,6 +112,8 @@ app.include_router(competitor_reaction_router)
 app.include_router(inventory_optimization_router)
 app.include_router(customer_segmentation_router)
 app.include_router(scenario_simulator_router)
+app.include_router(ai_chat_router)
+app.include_router(pricing_engine_router)
 
 
 # ── Health check ─────────────────────────────────────────────────────────────

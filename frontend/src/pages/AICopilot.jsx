@@ -1,346 +1,238 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { motion } from 'framer-motion';
 import {
-  Bot, Send, Target, TrendingUp, AlertTriangle, BarChart3, Lightbulb,
-  RefreshCw, Zap, Crown, Tag, Heart, Package, DollarSign,
+  Bot, Send, Sparkles, User, Loader2, Activity, AlertCircle,
 } from 'lucide-react';
 
 import API from '../api/client';
-import { useProduct } from '../context/ProductContext';
+import { fadeUp } from '../motion/tokens';
 
-// ─────────────────────────────────────────────────────────────────────────────
-
-const GOAL_OPTIONS = [
-  { value: 'maximize_profit', label: 'Maximize Profit', desc: 'Increase margins while protecting volume' },
-  { value: 'increase_revenue', label: 'Increase Revenue', desc: 'Grow top-line sales and market share' },
-  { value: 'maximize_market_share', label: 'Maximize Market Share', desc: 'Aggressive growth and customer acquisition' },
-  { value: 'optimize_inventory', label: 'Optimize Inventory', desc: 'Balance stock levels and minimize holding costs' },
+const STARTERS_FALLBACK = [
+  'Which products have the highest revenue impact opportunity?',
+  'Where is my inventory most at risk?',
+  'How do I balance margin and market share?',
+  'What does elasticity mean for my pricing?',
 ];
 
-const AGENT_ICONS = {
-  'Pricing Agent': Crown,
-  'Competitor Agent': Target,
-  'Inventory Agent': Package,
-  'Marketing Agent': Tag,
-  'Trend Agent': TrendingUp,
-  'Revenue Agent': DollarSign,
-};
-
-const INSIGHT_ICONS = {
-  market_risk: AlertTriangle,
-  revenue_opportunity: TrendingUp,
-  trend_alert: Zap,
-  ai_recommendation: Lightbulb,
-  info: BarChart3,
-};
-
-// ─── Sub-components ──────────────────────────────────────────────────────────
-
-function InsightCard({ card }) {
-  const Icon = INSIGHT_ICONS[card.type] || BarChart3;
-  const severityColor = {
-    CRITICAL: '#EF4444',
-    WARNING: '#F59E0B',
-    INFO: '#3B82F6',
-  }[card.severity] || '#6B7280';
+function ProviderChip({ mode }) {
+  const meta = {
+    gemini: { label: 'Gemini · Live',    color: '#1a73e8', dot: '#1a73e8' },
+    groq:   { label: 'Groq Llama · Live', color: '#f55036', dot: '#f55036' },
+    demo:   { label: 'Demo mode',         color: '#b45309', dot: '#b45309' },
+  }[mode] || { label: 'Loading…', color: '#52525B', dot: '#52525B' };
 
   return (
-    <div className="ai-insight-card">
-      <div className="ai-insight-card__header">
-        <Icon size={16} className="ai-insight-card__icon" />
-        <span className="ai-insight-card__title">{card.title}</span>
-        {card.impact_pct != null && (
-          <span className={`ai-insight-card__impact ai-insight-card__impact--${card.impact_pct > 0 ? 'positive' : 'negative'}`}>
-            {card.impact_pct > 0 ? '+' : ''}{card.impact_pct.toFixed(1)}%
-          </span>
+    <span className="ai-mode" style={{ color: meta.color }}>
+      <span className="ai-mode__dot" style={{ background: meta.dot }} />
+      {meta.label}
+    </span>
+  );
+}
+
+function Message({ msg }) {
+  const isUser = msg.role === 'user';
+  return (
+    <motion.div
+      className={`ai-msg ${isUser ? 'ai-msg--user' : 'ai-msg--bot'}`}
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.25 }}
+    >
+      <div className="ai-msg__avatar" aria-hidden="true">
+        {isUser ? <User size={14} /> : <Bot size={14} />}
+      </div>
+      <div className="ai-msg__bubble">
+        <div className="ai-msg__text">{msg.content}</div>
+        {msg.provider && (
+          <div className="ai-msg__meta">
+            via {msg.provider}{msg.model ? ` · ${msg.model}` : ''}
+          </div>
         )}
       </div>
-      <div className="ai-insight-card__desc">{card.description}</div>
-    </div>
+    </motion.div>
   );
 }
-
-function AgentBadge({ agent }) {
-  const Icon = AGENT_ICONS[agent] || Bot;
-  return (
-    <div className="ai-agent-badge">
-      <Icon size={14} className="ai-agent-badge__icon" />
-      <span>{agent}</span>
-    </div>
-  );
-}
-
-function StrategyResponse({ data }) {
-  return (
-    <div className="ai-strategy-response">
-      {/* Narrative */}
-      <div className="ai-strategy__narrative">
-        <div className="ai-strategy__narrative-text">
-          {data.strategic_narrative.split('\n\n').map((para, i) => (
-            <p key={i}>{para}</p>
-          ))}
-        </div>
-      </div>
-
-      {/* Key Insights */}
-      <div className="ai-strategy__insights">
-        <h4 className="ai-strategy__section-title">Key Insights</h4>
-        <div className="ai-insights-grid">
-          {data.key_insights.map((insight, i) => (
-            <div key={i} className="ai-insight-item">
-              <div className="ai-insight-item__text">{insight}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Recommended Action */}
-      <div className="ai-strategy__action">
-        <h4 className="ai-strategy__section-title">Recommended Action</h4>
-        <div className="ai-action-card">
-          <div className="ai-action-card__text">{data.recommended_action}</div>
-          <div className="ai-action-card__meta">
-            <span className="ai-action-card__confidence">
-              Confidence: {data.confidence_score.toFixed(0)}%
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Expected Impact */}
-      <div className="ai-strategy__impact">
-        <h4 className="ai-strategy__section-title">Expected Impact</h4>
-        <div className="ai-impact-grid">
-          <div className="ai-impact-item">
-            <div className="ai-impact-item__label">Revenue Impact</div>
-            <div className={`ai-impact-item__value ${data.expected_impact.revenue_impact_pct > 0 ? 'positive' : 'negative'}`}>
-              {data.expected_impact.revenue_impact_pct > 0 ? '+' : ''}{data.expected_impact.revenue_impact_pct.toFixed(1)}%
-            </div>
-          </div>
-          <div className="ai-impact-item">
-            <div className="ai-impact-item__label">Margin Impact</div>
-            <div className={`ai-impact-item__value ${data.expected_impact.margin_impact_pct > 0 ? 'positive' : 'negative'}`}>
-              {data.expected_impact.margin_impact_pct > 0 ? '+' : ''}{data.expected_impact.margin_impact_pct.toFixed(1)}%
-            </div>
-          </div>
-          <div className="ai-impact-item">
-            <div className="ai-impact-item__label">Volume Projection</div>
-            <div className="ai-impact-item__value">{data.expected_impact.volume_projection.toLocaleString()} units</div>
-          </div>
-          <div className="ai-impact-item">
-            <div className="ai-impact-item__label">Timeframe</div>
-            <div className="ai-impact-item__value">{data.expected_impact.timeframe}</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Agent Breakdown */}
-      <div className="ai-strategy__agents">
-        <h4 className="ai-strategy__section-title">Multi-Agent Analysis</h4>
-        <div className="ai-agents-grid">
-          {Object.entries(data.reasoning_breakdown).map(([agent, reasoning]) => (
-            <div key={agent} className="ai-agent-card">
-              <AgentBadge agent={agent} />
-              <div className="ai-agent-card__reasoning">{reasoning}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Next Steps */}
-      <div className="ai-strategy__next-steps">
-        <h4 className="ai-strategy__section-title">Next Steps</h4>
-        <ul className="ai-next-steps">
-          {data.next_steps.map((step, i) => (
-            <li key={i}>{step}</li>
-          ))}
-        </ul>
-      </div>
-    </div>
-  );
-}
-
-// ─── Main page ───────────────────────────────────────────────────────────────
 
 export default function AICopilot() {
-  const { activeProduct } = useProduct();
-  const productId = activeProduct?.id || activeProduct?.product_id;
-
-  const [goalType, setGoalType] = useState('maximize_profit');
-  const [objective, setObjective] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [strategy, setStrategy] = useState(null);
-  const [insights, setInsights] = useState([]);
+  const [mode, setMode] = useState(null);
+  const [productId, setProductId] = useState('');
+  const [products, setProducts] = useState([]);
+  const [suggestions, setSuggestions] = useState(STARTERS_FALLBACK);
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState('');
+  const [sending, setSending] = useState(false);
   const [error, setError] = useState(null);
+  const scrollRef = useRef(null);
 
-  const messagesEndRef = useRef(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
+  // Load mode + products
   useEffect(() => {
-    scrollToBottom();
-  }, [strategy, insights]);
+    API.get('/api/ai/mode').then((r) => setMode(r.data?.mode)).catch(() => setMode('demo'));
+    API.get('/api/products').then((r) => setProducts(r.data?.products || [])).catch(() => setProducts([]));
+  }, []);
 
-  const loadInsights = useCallback(async () => {
-    if (!productId) return;
-    try {
-      const res = await API.get(`/api/copilot/insights/${productId}`);
-      setInsights(res.data.cards || []);
-    } catch (e) {
-      console.error('Failed to load insights:', e);
-    }
+  // Refresh suggestions when product changes
+  useEffect(() => {
+    const url = productId
+      ? `/api/ai/suggestions/${productId}`
+      : '/api/ai/suggestions';
+    API.get(url)
+      .then((r) => setSuggestions(r.data?.suggestions || STARTERS_FALLBACK))
+      .catch(() => setSuggestions(STARTERS_FALLBACK));
   }, [productId]);
 
+  // Auto-scroll to bottom on new message
   useEffect(() => {
-    loadInsights();
-  }, [loadInsights]);
-
-  const generateStrategy = useCallback(async () => {
-    if (!productId || !objective.trim()) return;
-    
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const res = await API.get(`/api/copilot/strategy/${productId}`, {
-        params: {
-          goal_type: goalType,
-          objective: objective.trim(),
-        },
-      });
-      setStrategy(res.data);
-    } catch (e) {
-      console.error(e);
-      setError(e.response?.data?.detail || e.message || 'Failed to generate strategy');
-    } finally {
-      setLoading(false);
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [productId, goalType, objective]);
+  }, [messages, sending]);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    generateStrategy();
-  };
+  const send = async (text) => {
+    const question = (text ?? input).trim();
+    if (!question || sending) return;
 
-  const reset = () => {
-    setStrategy(null);
+    setInput('');
     setError(null);
-    setObjective('');
+    setSending(true);
+    setMessages((prev) => [...prev, { role: 'user', content: question }]);
+
+    try {
+      const res = await API.post('/api/ai/chat', {
+        question,
+        product_id: productId || null,
+      });
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: 'assistant',
+          content: res.data?.answer || '(no response)',
+          provider: res.data?.provider,
+          model: res.data?.model,
+        },
+      ]);
+    } catch (err) {
+      setError('Failed to reach the assistant.');
+      setMessages((prev) => [
+        ...prev,
+        { role: 'assistant', content: 'Sorry — something went wrong reaching the assistant.' },
+      ]);
+    } finally {
+      setSending(false);
+    }
   };
+
+  const onKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      send();
+    }
+  };
+
+  const productLabel = productId
+    ? products.find((p) => p.id === productId)?.name || 'Product'
+    : 'Whole catalog';
 
   return (
-    <div className="ai-copilot-page">
-      {/* Header */}
-      <div className="ai-header">
+    <div className="ai">
+      <header className="ai__header">
         <div>
-          <div className="ai-header__eyebrow">
-            <Bot size={14} /> AI Strategy Generator
+          <div className="ai__title-row">
+            <Bot size={20} strokeWidth={1.75} />
+            <h1 className="ai__title">AI Copilot</h1>
+            <ProviderChip mode={mode} />
           </div>
-          <h1 className="ai-header__title">Multi-Agent Strategic Reasoning Engine</h1>
-          <p className="ai-header__sub">
-            Get executive-level strategic recommendations powered by 6 specialized AI agents analyzing pricing, competition, inventory, marketing, trends, and revenue.
+          <p className="ai__sub">
+            Grounded in your product catalog, ML predictions, and competitor data.
           </p>
         </div>
-        <button className="ai-refresh" onClick={loadInsights}>
-          <RefreshCw size={14} /> Refresh Insights
-        </button>
-      </div>
-
-      {/* Insight Cards */}
-      {insights.length > 0 && (
-        <div className="ai-insights-section">
-          <h3 className="ai-section-title">Market Intelligence</h3>
-          <div className="ai-insights-grid">
-            {insights.map((card, i) => (
-              <InsightCard key={i} card={card} />
+        <div className="ai__product-picker">
+          <label className="sb-controls__label">Context</label>
+          <select
+            className="sb-picker"
+            value={productId}
+            onChange={(e) => setProductId(e.target.value)}
+          >
+            <option value="">All products</option>
+            {products.map((p) => (
+              <option key={p.id} value={p.id}>{p.name}</option>
             ))}
-          </div>
+          </select>
+        </div>
+      </header>
+
+      {mode === 'demo' && (
+        <div className="ai__demo-banner">
+          <AlertCircle size={14} />
+          <span>
+            Running in <strong>demo mode</strong> — answers are deterministic. Set <code>GEMINI_API_KEY</code> (or <code>GROQ_API_KEY</code>) on the backend to enable live LLM responses.
+          </span>
         </div>
       )}
 
-      {/* Strategy Generator */}
-      <div className="ai-generator-section">
-        <h3 className="ai-section-title">Generate Strategy</h3>
-        
-        <form className="ai-generator-form" onSubmit={handleSubmit}>
-          {/* Goal Selection */}
-          <div className="ai-form-group">
-            <label className="ai-form-label">Business Goal</label>
-            <div className="ai-goal-options">
-              {GOAL_OPTIONS.map((goal) => (
-                <label key={goal.value} className="ai-goal-option">
-                  <input
-                    type="radio"
-                    name="goal"
-                    value={goal.value}
-                    checked={goalType === goal.value}
-                    onChange={(e) => setGoalType(e.target.value)}
-                    className="ai-goal-radio"
-                  />
-                  <div className="ai-goal-content">
-                    <div className="ai-goal-title">{goal.label}</div>
-                    <div className="ai-goal-desc">{goal.desc}</div>
-                  </div>
-                </label>
-              ))}
+      <div className="ai__chat">
+        <div className="ai__transcript" ref={scrollRef}>
+          {messages.length === 0 ? (
+            <div className="ai__welcome">
+              <div className="ai__welcome-icon">
+                <Sparkles size={20} strokeWidth={2} />
+              </div>
+              <h2>Ask anything about <em>{productLabel}</em></h2>
+              <p>Forecasts, margins, competitors, risk, strategy — the assistant grounds every answer in your data.</p>
+              <div className="ai__starters">
+                {suggestions.slice(0, 5).map((s) => (
+                  <motion.button
+                    key={s}
+                    type="button"
+                    className="ai__starter"
+                    variants={fadeUp}
+                    initial="initial"
+                    animate="animate"
+                    onClick={() => send(s)}
+                  >
+                    <Activity size={12} strokeWidth={2.25} />
+                    <span>{s}</span>
+                  </motion.button>
+                ))}
+              </div>
             </div>
-          </div>
+          ) : (
+            messages.map((m, i) => <Message key={i} msg={m} />)
+          )}
+          {sending && (
+            <div className="ai-msg ai-msg--bot">
+              <div className="ai-msg__avatar"><Bot size={14} /></div>
+              <div className="ai-msg__bubble">
+                <Loader2 size={14} className="pw-spin" />
+                <span style={{ marginLeft: 8, fontSize: 12, color: 'rgba(26,58,46,0.6)' }}>
+                  Thinking…
+                </span>
+              </div>
+            </div>
+          )}
+          {error && (
+            <div className="ai__error"><AlertCircle size={14} /> {error}</div>
+          )}
+        </div>
 
-          {/* Objective Input */}
-          <div className="ai-form-group">
-            <label className="ai-form-label">Strategic Objective</label>
-            <textarea
-              value={objective}
-              onChange={(e) => setObjective(e.target.value)}
-              placeholder="Describe your specific objective in natural language..."
-              className="ai-objective-textarea"
-              rows={3}
-            />
-          </div>
-
-          {/* Actions */}
-          <div className="ai-form-actions">
-            <button
-              type="submit"
-              className="ai-generate-btn"
-              disabled={loading || !objective.trim() || !productId}
-            >
-              {loading ? (
-                <>
-                  <RefreshCw size={16} className="animate-spin" />
-                  Generating Strategy...
-                </>
-              ) : (
-                <>
-                  <Bot size={16} />
-                  Generate AI Strategy
-                </>
-              )}
-            </button>
-            {strategy && (
-              <button type="button" className="ai-reset-btn" onClick={reset}>
-                Clear
-              </button>
-            )}
-          </div>
-        </form>
-
-        {/* Error */}
-        {error && (
-          <div className="ai-error">
-            <AlertTriangle size={16} /> {error}
-          </div>
-        )}
-
-        {/* Strategy Response */}
-        {strategy && (
-          <div className="ai-strategy-section">
-            <StrategyResponse data={strategy} />
-          </div>
-        )}
-
-        <div ref={messagesEndRef} />
+        <div className="ai__input-row">
+          <textarea
+            className="ai__input"
+            placeholder={`Ask about ${productLabel.toLowerCase()}…`}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={onKeyDown}
+            rows={2}
+            disabled={sending}
+          />
+          <button
+            type="button"
+            className="ai__send"
+            onClick={() => send()}
+            disabled={!input.trim() || sending}
+          >
+            {sending ? <Loader2 size={16} className="pw-spin" /> : <Send size={16} />}
+          </button>
+        </div>
       </div>
     </div>
   );

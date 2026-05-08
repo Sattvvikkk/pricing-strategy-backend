@@ -20,6 +20,8 @@ from sqlalchemy.orm import Session
 from database import get_db
 from models import SalesHistory, CompetitorData
 from services.product_catalog import get_product
+from services.product_enrichment import enrich_product
+from services.ml_orchestrator import run_analysis
 from services.demand_forecasting_ensemble import run_ensemble_forecast
 from services.elasticity_model import compute_advanced_elasticity
 from services.competitor_reaction_model import predict_competitor_reactions
@@ -112,3 +114,28 @@ def ml_predictions(
 
     _set_cached(product_id, result)
     return result
+
+
+# ── New: Multi-Agent Orchestrator endpoint ───────────────────────────────────
+
+@router.get("/run-analysis")
+@router.post("/run-analysis")
+def run_multi_agent_analysis(
+    product_id: str = Query(default="vs-essential-cotton-tee"),
+    db: Session = Depends(get_db),
+):
+    """
+    Run the 7-agent ML orchestrator and return the unified blueprint payload:
+      data_quality · forecast · elasticity_score · recommended_price_band
+      · competitor_response · inventory_risk · customer_segmentation
+      · insights · recommended_action · confidence_score
+    """
+    base = get_product(product_id)
+    if not base:
+        return {"error": "Product not found", "product_id": product_id}
+
+    enriched = enrich_product(base)
+    sales_df = _load_sales(product_id, db)
+    comp_df = _load_competitors(product_id, db)
+
+    return run_analysis(enriched, sales_df=sales_df, comp_df=comp_df)

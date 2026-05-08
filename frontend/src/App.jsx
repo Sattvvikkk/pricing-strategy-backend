@@ -8,6 +8,8 @@ import ScrollToTop from './components/ScrollToTop';
 import AppLayout from './components/app/AppLayout';
 
 // App pages
+import Overview from './pages/Overview';
+import PricingEngine from './pages/PricingEngine';
 import Dashboard from './pages/Dashboard';
 import Analytics from './pages/Analytics';
 import Scraper from './pages/Scraper';
@@ -47,10 +49,12 @@ export default function App() {
             <Route path="/login" element={<Navigate to="/" replace />} />
 
             {/* ── App routes ─────────────────────────────────────── */}
-            <Route path="/app"                  element={<AppPage><Dashboard /></AppPage>} />
+            <Route path="/app"                  element={<AppPage><Overview /></AppPage>} />
+            <Route path="/app/dashboard"        element={<AppPage><Dashboard /></AppPage>} />
             <Route path="/app/analytics"        element={<AppPage><Analytics /></AppPage>} />
-            <Route path="/app/intelligence"     element={<AppPage><IntelligenceHub /></AppPage>} />
+            <Route path="/app/intelligence"     element={<AppPage><IntelligencePipeline /></AppPage>} />
             <Route path="/app/strategy"         element={<AppPage><StrategyBuilder /></AppPage>} />
+            <Route path="/app/pricing-engine"   element={<AppPage><PricingEngine /></AppPage>} />
             <Route path="/app/scraper"          element={<AppPage><Scraper /></AppPage>} />
             <Route path="/app/marketplace"      element={<AppPage><MarketplaceInsights /></AppPage>} />
             <Route path="/app/products/:id"     element={<AppPage><ProductDetails /></AppPage>} />

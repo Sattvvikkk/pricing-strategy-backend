@@ -1,9 +1,15 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  ResponsiveContainer, AreaChart, Area, XAxis, Tooltip,
+  BarChart, Bar,
+} from 'recharts';
 import {
   Database, Globe, Package, BrainCircuit, DollarSign, Bot, Sliders,
-  ChevronLeft, ChevronRight, Check, ArrowUpRight,
+  ChevronLeft, ChevronRight, Check, ArrowUpRight, Info, Sparkles,
 } from 'lucide-react';
+import { fadeUp, stagger, EASE, DURATION } from '../motion/tokens';
 
 const STEPS = [
   { id: 'ingest', label: 'Data Ingestion', icon: Database, title: 'Step 1 - Connect Your Data Sources', description: 'Activate scrapers and feeds for marketplaces, internal data, and ad platforms.', deepLink: '/app/scraper', deepLinkLabel: 'Open Scraper Engine' },
@@ -84,27 +90,80 @@ function StepInventory() {
   );
 }
 
+const FORECAST_SERIES = [
+  { d: 'Mon', y: 42 }, { d: 'Tue', y: 48 }, { d: 'Wed', y: 51 },
+  { d: 'Thu', y: 47 }, { d: 'Fri', y: 58 }, { d: 'Sat', y: 72 }, { d: 'Sun', y: 78 },
+];
+const ELASTICITY_SERIES = [
+  { p: '-10%', q: 18 }, { p: '-5%', q: 9 }, { p: '0%', q: 0 },
+  { p: '+5%', q: -7 }, { p: '+10%', q: -14 },
+];
+
+function MiniChart({ kind }) {
+  if (kind === 'area') {
+    return (
+      <ResponsiveContainer width="100%" height={56}>
+        <AreaChart data={FORECAST_SERIES} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
+          <defs>
+            <linearGradient id="miniA" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#ceed6f" stopOpacity={0.6} />
+              <stop offset="100%" stopColor="#ceed6f" stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <Area type="monotone" dataKey="y" stroke="#a3d540" strokeWidth={1.75} fill="url(#miniA)" />
+          <XAxis dataKey="d" hide />
+          <Tooltip cursor={false} contentStyle={{ background: '#0d1f18', border: '1px solid rgba(206,237,111,0.2)', borderRadius: 6, fontSize: 11, color: '#e9efe9' }} />
+        </AreaChart>
+      </ResponsiveContainer>
+    );
+  }
+  return (
+    <ResponsiveContainer width="100%" height={56}>
+      <BarChart data={ELASTICITY_SERIES} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
+        <Bar dataKey="q" fill="#ceed6f" radius={[2, 2, 0, 0]} />
+        <XAxis dataKey="p" hide />
+        <Tooltip cursor={false} contentStyle={{ background: '#0d1f18', border: '1px solid rgba(206,237,111,0.2)', borderRadius: 6, fontSize: 11, color: '#e9efe9' }} />
+      </BarChart>
+    </ResponsiveContainer>
+  );
+}
+
 function StepForecast() {
   const items = [
-    { title: 'Demand Forecast', value: '+28%', sub: 'Weekend spike', conf: 92 },
-    { title: 'Price Elasticity', value: '-1.5', sub: '5% drop to +8% volume', conf: 87 },
-    { title: 'Competitor Reaction', value: '34%', sub: 'Price war probability', conf: 76 },
-    { title: 'Customer Segments', value: '4', sub: '23% loyal premium', conf: 89 },
+    { title: 'Demand Forecast', value: '+28%', sub: 'Weekend spike', conf: 92, chart: 'area', why: 'Historical weekend pattern + Google Trends spike +41%' },
+    { title: 'Price Elasticity', value: '-1.5', sub: '5% drop to +8% volume', conf: 87, chart: 'bar', why: 'Computed from 90-day price/sales regression (R²=0.82)' },
+    { title: 'Competitor Reaction', value: '34%', sub: 'Price war probability', conf: 76, chart: 'area', why: 'Competitor X cut prices in 3 of last 5 similar windows' },
+    { title: 'Customer Segments', value: '4', sub: '23% loyal premium', conf: 89, chart: 'bar', why: 'K-means on RFM + price-sensitivity (silhouette=0.61)' },
   ];
   return (
-    <div className="ip-cards">
+    <motion.div className="ip-cards" variants={stagger(0.06)} initial="initial" animate="animate">
       {items.map((f) => (
-        <div key={f.title} className="ip-forecast">
-          <div className="ip-forecast__title">{f.title}</div>
+        <motion.div key={f.title} className="ip-forecast" variants={fadeUp}>
+          <div className="ip-forecast__title">
+            {f.title}
+            <span className="ip-why" tabIndex={0} aria-label={`Why: ${f.why}`}>
+              <Info size={12} />
+              <span className="ip-why__pop">{f.why}</span>
+            </span>
+          </div>
           <div className="ip-forecast__value">{f.value}</div>
           <div className="ip-forecast__sub">{f.sub}</div>
+          <div className="ip-forecast__chart"><MiniChart kind={f.chart} /></div>
           <div className="ip-forecast__conf">
             <span>Confidence</span>
             <span className="ip-forecast__conf-value">{f.conf}%</span>
           </div>
-        </div>
+          <div className="ip-confbar">
+            <motion.span
+              className="ip-confbar__fill"
+              initial={{ width: 0 }}
+              animate={{ width: `${f.conf}%` }}
+              transition={{ duration: 1, ease: EASE.outExpo, delay: 0.2 }}
+            />
+          </div>
+        </motion.div>
       ))}
-    </div>
+    </motion.div>
   );
 }
 
@@ -289,7 +348,17 @@ export default function IntelligencePipeline() {
         </div>
 
         <div className="ip-panel__body">
-          <StepContent />
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={step.id}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: DURATION.base, ease: EASE.out }}
+            >
+              <StepContent />
+            </motion.div>
+          </AnimatePresence>
         </div>
 
         <div className="ip-panel__foot">

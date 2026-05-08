@@ -1,22 +1,20 @@
-import { useState, useMemo } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import {
-  LayoutDashboard, Workflow, Bot, Zap, Settings,
+  LayoutDashboard, BrainCircuit, Target, Gauge, Bot, Settings,
 } from 'lucide-react';
 
 import { useAuth } from '../../context/AuthContext';
-import { useProduct } from '../../context/ProductContext';
 import BrandLogo from '../BrandLogo';
 
+// Modules-only sidebar (no products listed here — Overview is the product universe)
 const NAV_ITEMS = [
-  { to: '/app',              label: 'Overview',     Icon: LayoutDashboard, end: true },
-  { to: '/app/pipeline',     label: 'Pipeline',     Icon: Workflow },
-  { to: '/app/ai-copilot',   label: 'AI Copilot',   Icon: Bot },
-  { to: '/app/automations',  label: 'Automations',  Icon: Zap },
-  { to: '/app/settings',     label: 'Settings',     Icon: Settings },
+  { to: '/app',                 label: 'Overview',               Icon: LayoutDashboard, end: true },
+  { to: '/app/intelligence',    label: 'Intelligence',           Icon: BrainCircuit },
+  { to: '/app/strategy',        label: 'Strategy Builder',       Icon: Target },
+  { to: '/app/pricing-engine',  label: 'Dynamic Pricing Engine', Icon: Gauge },
+  { to: '/app/ai-copilot',      label: 'AI Copilot',             Icon: Bot },
+  { to: '/app/settings',        label: 'Settings',               Icon: Settings },
 ];
-
-const FILTERS = ['All', 'T-Shirts', 'Jeans', 'Dresses', 'Jackets'];
 
 function getInitials(email = '') {
   if (!email) return 'U';
@@ -26,31 +24,8 @@ function getInitials(email = '') {
   return (name.slice(0, 2) || 'U').toUpperCase();
 }
 
-function matchesFilter(product, filter) {
-  if (filter === 'All') return true;
-  const cat = (product?.category || product?.product_type || '').toLowerCase();
-  const name = (product?.name || product?.title || '').toLowerCase();
-  const f = filter.toLowerCase().replace('-', '');
-  return cat.includes(f.replace('s', '')) || name.includes(f.replace('s', ''));
-}
-
 export default function AppSidebar() {
-  const navigate = useNavigate();
   const { user } = useAuth();
-  const { catalog, activeProduct, setActiveProduct } = useProduct();
-
-  const [filter, setFilter] = useState('All');
-
-  const filteredProducts = useMemo(() => {
-    return (catalog || []).filter((p) => matchesFilter(p, filter));
-  }, [catalog, filter]);
-
-  const onPickProduct = (product) => {
-    setActiveProduct(product);
-    const id = product?.id || product?.product_id;
-    if (id) navigate(`/app/products/${id}`);
-  };
-
   const email = user?.email || 'demo@vougestudio.com';
   const initials = getInitials(email);
 
@@ -65,9 +40,9 @@ export default function AppSidebar() {
         <div className="pe-sidebar__sublabel">Vouge Studio · Pro</div>
       </div>
 
-      {/* Main nav */}
+      {/* Modules */}
       <div className="pe-sidebar__section">
-        <div className="pe-sidebar__label">Main</div>
+        <div className="pe-sidebar__label">Modules</div>
         <nav className="pe-sidebar__nav">
           {NAV_ITEMS.map(({ to, label, Icon, end }) => (
             <NavLink
@@ -85,49 +60,8 @@ export default function AppSidebar() {
         </nav>
       </div>
 
-      {/* Products section */}
-      <div className="pe-sidebar__section pe-sidebar__products">
-        <div className="pe-sidebar__label">Products</div>
-
-        <div className="pe-sidebar__filters">
-          {FILTERS.map((f) => (
-            <button
-              key={f}
-              type="button"
-              className={`pe-filter-pill ${filter === f ? 'pe-filter-pill--active' : ''}`}
-              onClick={() => setFilter(f)}
-            >
-              {f}
-            </button>
-          ))}
-        </div>
-
-        <ul className="pe-sidebar__product-list">
-          {filteredProducts.map((p) => {
-            const id = p.id || p.product_id;
-            const isActive = activeProduct && (activeProduct.id || activeProduct.product_id) === id;
-            const name = p.name || p.title || 'Untitled';
-            const price = p.price ?? p.current_price;
-            return (
-              <li
-                key={id}
-                onClick={() => onPickProduct(p)}
-                className={`pe-product-item ${isActive ? 'pe-product-item--active' : ''}`}
-              >
-                <div className="pe-product-item__name">{name}</div>
-                {price != null && (
-                  <div className="pe-product-item__price">₹{price}</div>
-                )}
-              </li>
-            );
-          })}
-          {filteredProducts.length === 0 && (
-            <li className="pe-product-item pe-product-item--empty">
-              No products
-            </li>
-          )}
-        </ul>
-      </div>
+      {/* Spacer pushes user block to bottom */}
+      <div className="pe-sidebar__spacer" />
 
       {/* Bottom — user */}
       <div className="pe-sidebar__bottom">

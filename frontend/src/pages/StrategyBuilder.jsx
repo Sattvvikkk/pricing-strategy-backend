@@ -1,339 +1,309 @@
-import { useState, useEffect } from 'react';
-import { useProduct } from '../context/ProductContext';
-import API from '../api/client';
-import StrategyCard from '../components/StrategyCard';
-import BusinessGoalSelector from '../components/BusinessGoalSelector';
-import AICopilot from '../components/AICopilot';
-import AIInsightCards from '../components/AIInsightCards';
-import ScenarioSimulator from '../components/ScenarioSimulator';
-import StrategyScore from '../components/StrategyScore';
+import { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import {
-  ResponsiveContainer, LineChart, Line,
-  XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine,
-} from 'recharts';
-import { TrendingUp, TrendingDown, ShieldCheck, Target, Activity } from 'lucide-react';
+  Target, Layers, ChevronRight, Sparkles, ShieldCheck, ShieldAlert,
+  AlertTriangle, TrendingUp, Loader2, Package,
+} from 'lucide-react';
 
-const fmt = (n) => Math.round(Number(n) || 0).toLocaleString('en-IN');
+import API from '../api/client';
+import { useProduct } from '../context/ProductContext';
+import AnimatedCounter from '../components/AnimatedCounter';
+import { fadeUp, stagger, EASE } from '../motion/tokens';
 
-const TOOLTIP_STYLE = {
-  background: '#1A1A1A',
-  border: '1px solid rgba(255,255,255,0.12)',
-  borderRadius: 8,
-  color: '#FFFFFF',
-  fontSize: 13,
-};
+const OBJECTIVES = [
+  { id: 'maximize_revenue',  label: 'Maximize revenue' },
+  { id: 'maximize_margin',   label: 'Maximize margin' },
+  { id: 'reduce_inventory',  label: 'Reduce inventory' },
+  { id: 'win_market_share',  label: 'Win market share' },
+];
 
-const ARCHETYPE_META = {
-  CLEARANCE:         { color: '#EF4444', desc: 'Sell through excess inventory quickly with aggressive pricing.' },
-  PENETRATION:       { color: '#3B82F6', desc: 'Capture market share with a low entry price to build volume.' },
-  PREMIUM:           { color: '#22C55E', desc: 'Maximise margin by leveraging brand strength and low elasticity.' },
-  SKIM:              { color: '#F59E0B', desc: 'Launch high and lower price over time as demand matures.' },
-  COMPETITIVE_MATCH: { color: '#8B5CF6', desc: 'Stay in lock-step with the market to defend volume.' },
-  HOLD:              { color: '#71717A', desc: 'Current price is optimal — no change recommended.' },
-};
+const HORIZONS = [7, 14, 30, 90];
 
-export default function StrategyBuilder() {
-  const { activeProduct } = useProduct();
-  const productId = activeProduct?.id || activeProduct?.product_id;
+function riskMeta(score) {
+  if (score < 0.25) return { Icon: ShieldCheck,   label: 'Low',    color: '#16803c', bg: 'rgba(22,128,60,0.12)' };
+  if (score < 0.45) return { Icon: ShieldAlert,   label: 'Medium', color: '#b45309', bg: 'rgba(180,83,9,0.14)' };
+  return                    { Icon: AlertTriangle, label: 'High',   color: '#b91c1c', bg: 'rgba(185,28,28,0.12)' };
+}
 
-  const [strategy, setStrategy] = useState(null);
-  const [simData, setSimData] = useState([]);
-  const [selectedGoal, setSelectedGoal] = useState(null);
-  const [showCopilot, setShowCopilot] = useState(false);
-  const [showGoalSelector, setShowGoalSelector] = useState(true);
-
-  // Fetch strategy data to build the simulation chart + corridor panel
-  useEffect(() => {
-    if (!productId) return;
-    API.get(`/api/strategy/${productId}`)
-      .then(r => {
-        setStrategy(r.data);
-        // Build simulation chart from 30-day series
-        const series = r.data?.simulation?.series || {};
-        const days = Object.values(series)[0]?.length || 0;
-        const rows = Array.from({ length: days }, (_, i) => {
-          const row = { day: i + 1 };
-          for (const [name, arr] of Object.entries(series)) {
-            row[name] = arr[i]?.revenue ?? 0;
-          }
-          return row;
-        });
-        setSimData(rows);
-      })
-      .catch(() => {});
-  }, [productId]);
-
-  const handleGoalSelect = (goal) => {
-    setSelectedGoal(goal);
-    setShowGoalSelector(false);
-  };
-
-  const handleGoalChange = (newGoal) => {
-    setSelectedGoal(newGoal);
-  };
-
-  const archetype = strategy?.archetype || 'HOLD';
-  const meta = ARCHETYPE_META[archetype] || ARCHETYPE_META.HOLD;
-  const corridor = strategy?.price_corridor;
-  const compStats = strategy?.competitor_stats;
-  const currentPrice = strategy?.current_price || 0;
-  const recommendedPrice = strategy?.recommended_price || 0;
-
-  const SIM_COLORS = {
-    PENETRATION:       '#3B82F6',
-    PREMIUM:           '#22C55E',
-    COMPETITIVE_MATCH: '#8B5CF6',
-    HOLD:              '#71717A',
-    CLEARANCE:         '#EF4444',
-    SKIM:              '#F59E0B',
-  };
-
+// ── Product picker ─────────────────────────────────────────────────────────
+function ProductPicker({ products, value, onChange }) {
   return (
-    <div className="main-content">
-      {/* Business Goal Selector Modal */}
-      <BusinessGoalSelector 
-        onSelect={handleGoalSelect}
-        isOpen={showGoalSelector}
-        activeProduct={activeProduct}
-      />
+    <select
+      className="sb-picker"
+      value={value || ''}
+      onChange={(e) => onChange(e.target.value)}
+    >
+      <option value="" disabled>Select a product…</option>
+      {products.map((p) => (
+        <option key={p.id} value={p.id}>
+          {p.name} · ₹{p.current_price}
+        </option>
+      ))}
+    </select>
+  );
+}
 
-      <div className="page-header">
-        <h2>Strategy Builder</h2>
-        <p>
-          AI-powered pricing intelligence for <strong>{activeProduct?.name || 'selected product'}</strong>
-          {selectedGoal && (
-            <span style={{ marginLeft: 16, color: 'rgba(255,255,255,0.6)' }}>
-              · Goal: {selectedGoal.replace('_', ' ')}
-            </span>
-          )}
-        </p>
+// ── Candidate card ─────────────────────────────────────────────────────────
+function StrategyCard({ s, isLeader }) {
+  const risk = riskMeta(s.risk_score);
+  const up = s.expected_revenue_uplift_pct >= 0;
+  return (
+    <motion.article
+      className={`sb-card ${isLeader ? 'sb-card--leader' : ''}`}
+      variants={fadeUp}
+      whileHover={{ y: -3, transition: { duration: 0.18, ease: EASE.out } }}
+    >
+      {isLeader && (
+        <div className="sb-card__leader-badge">
+          <Sparkles size={11} strokeWidth={2.25} /> Best for objective
+        </div>
+      )}
+      <header className="sb-card__head">
+        <h3 className="sb-card__name">{s.name}</h3>
+        <span className="sb-card__risk" style={{ background: risk.bg, color: risk.color }}>
+          <risk.Icon size={11} strokeWidth={2.25} /> {risk.label} risk
+        </span>
+      </header>
+
+      <div className="sb-card__price-row">
+        <div className="sb-card__price">₹{Number(s.recommended_price).toLocaleString('en-IN')}</div>
+        <div className={`sb-card__delta ${s.price_change_pct >= 0 ? 'is-up' : 'is-down'}`}>
+          {s.price_change_pct >= 0 ? '+' : ''}{s.price_change_pct.toFixed(1)}%
+        </div>
       </div>
 
-      {/* AI Insights Row */}
-      <div style={{ marginBottom: 24 }}>
-        <AIInsightCards productId={productId} isCompact={true} />
+      <dl className="sb-card__metrics">
+        <div className="sb-card__metric">
+          <dt>Revenue impact</dt>
+          <dd className={up ? 'is-up' : 'is-down'}>
+            {up ? '+' : ''}{s.expected_revenue_uplift_pct.toFixed(1)}%
+          </dd>
+        </div>
+        <div className="sb-card__metric">
+          <dt>Expected units</dt>
+          <dd>{s.expected_units?.toLocaleString()}</dd>
+        </div>
+        <div className="sb-card__metric">
+          <dt>Margin</dt>
+          <dd>{s.expected_margin_pct?.toFixed(1)}%</dd>
+        </div>
+        <div className="sb-card__metric">
+          <dt>Confidence</dt>
+          <dd>{Math.round(s.confidence * 100)}%</dd>
+        </div>
+      </dl>
+
+      <div className="sb-card__drivers">
+        {s.drivers.map((d, i) => (
+          <span key={i} className="sb-card__driver">{d}</span>
+        ))}
       </div>
 
-      {/* Row 1: Strategy Card (full intelligence card) */}
-      <StrategyCard productId={productId} />
+      <p className="sb-card__rationale">{s.rationale}</p>
 
-      {/* Row 2: AI Copilot Chat (if goal selected) */}
-      {selectedGoal && (
-        <div style={{ marginTop: 24, height: 500 }}>
-          <AICopilot 
-            productId={productId} 
-            goalType={selectedGoal}
-            onGoalChange={handleGoalChange}
+      <footer className="sb-card__foot">
+        <div className="sb-card__score">
+          <span className="sb-card__score-label">Objective fit</span>
+          <span className="sb-card__score-value">{s.objective_score?.toFixed(0)}</span>
+        </div>
+        <div className="sb-card__score-bar">
+          <motion.span
+            className="sb-card__score-fill"
+            initial={{ width: 0 }}
+            animate={{ width: `${s.objective_score}%` }}
+            transition={{ duration: 0.8, ease: EASE.outExpo }}
           />
         </div>
-      )}
+      </footer>
+    </motion.article>
+  );
+}
 
-      {/* Row 3: Archetype + Corridor + Competitor stats */}
-      {strategy && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginTop: 20 }}>
+// ── Page ────────────────────────────────────────────────────────────────────
+export default function StrategyBuilder() {
+  const navigate = useNavigate();
+  const { activeProduct } = useProduct();
 
-          {/* Archetype Info */}
-          <div className="card" style={{ borderTop: `3px solid ${meta.color}` }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-              <ShieldCheck size={18} style={{ color: meta.color }} />
-              <span style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-primary)' }}>
-                Active Archetype
-              </span>
-            </div>
-            <div style={{
-              fontSize: '1.4rem', fontWeight: 800, color: meta.color, marginBottom: 8,
-              letterSpacing: '-0.02em',
-            }}>
-              {archetype.replace('_', ' ')}
-            </div>
-            <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-              {meta.desc}
-            </p>
-            <div style={{ marginTop: 14, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-              Elasticity:&nbsp;
-              <strong style={{ color: 'var(--text-primary)' }}>
-                {strategy.elasticity?.toFixed(2) ?? '—'}
-              </strong>
-              &nbsp;·&nbsp;Confidence:&nbsp;
-              <strong style={{ color: 'var(--text-primary)' }}>
-                {Math.round(strategy.confidence ?? 0)}%
-              </strong>
-            </div>
-          </div>
+  const [products, setProducts] = useState([]);
+  const [productId, setProductId] = useState(activeProduct?.id || '');
+  const [objective, setObjective] = useState('maximize_revenue');
+  const [horizon, setHorizon] = useState(30);
+  const [aggressiveness, setAggressiveness] = useState(0.5);
 
-          {/* Price Corridor */}
-          {corridor && (
-            <div className="card">
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-                <Target size={18} style={{ color: 'var(--accent)' }} />
-                <span style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-primary)' }}>
-                  Price Corridor
-                </span>
-              </div>
-              {/* Visual corridor bar */}
-              <div style={{ position: 'relative', height: 8, background: 'var(--border)', borderRadius: 8, marginBottom: 16 }}>
-                {/* filled corridor range */}
-                <div style={{
-                  position: 'absolute', left: 0, right: 0,
-                  height: '100%', background: 'var(--accent)',
-                  borderRadius: 8, opacity: 0.25,
-                }} />
-                {/* current price marker */}
-                {currentPrice > 0 && corridor.max > corridor.min && (
-                  <div style={{
-                    position: 'absolute',
-                    left: `${Math.min(100, Math.max(0, ((currentPrice - corridor.min) / (corridor.max - corridor.min)) * 100))}%`,
-                    top: -4, width: 2, height: 16,
-                    background: '#71717A', borderRadius: 2,
-                    transform: 'translateX(-50%)',
-                  }} title="Current price" />
-                )}
-                {/* recommended price marker */}
-                {recommendedPrice > 0 && corridor.max > corridor.min && (
-                  <div style={{
-                    position: 'absolute',
-                    left: `${Math.min(100, Math.max(0, ((recommendedPrice - corridor.min) / (corridor.max - corridor.min)) * 100))}%`,
-                    top: -4, width: 3, height: 16,
-                    background: 'var(--accent)', borderRadius: 2,
-                    transform: 'translateX(-50%)',
-                  }} title="Recommended price" />
-                )}
-              </div>
-              {/* Labels under the bar */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--text-secondary)', marginBottom: 14 }}>
-                <span>₹{fmt(corridor.min)} <span style={{ opacity: 0.5 }}>floor</span></span>
-                <span style={{ color: '#71717A', fontSize: '0.68rem' }}>▏current ₹{fmt(currentPrice)}▕</span>
-                <span>₹{fmt(corridor.max)} <span style={{ opacity: 0.5 }}>ceiling</span></span>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                {[
-                  { label: 'Floor (min allowed)', val: corridor.min, note: 'Cost + margin buffer' },
-                  { label: 'Ceiling (max allowed)', val: corridor.max, note: 'Elasticity bound' },
-                  { label: 'Recommended price', val: recommendedPrice },
-                  { label: 'Current price', val: currentPrice },
-                ].map(({ label, val, note }) => (
-                  <div key={label}>
-                    <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginBottom: 2 }}>{label}</div>
-                    <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)' }}>₹{fmt(val)}</div>
-                    {note && <div style={{ fontSize: '0.68rem', color: 'var(--muted)' }}>{note}</div>}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-          {/* Competitor Stats */}
-          {compStats && (
-            <div className="card">
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-                <Activity size={18} style={{ color: '#F59E0B' }} />
-                <span style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-primary)' }}>
-                  Market Intelligence
-                </span>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {[
-                  { label: 'Market Average', val: compStats.avg_price, cmp: currentPrice },
-                  { label: 'Market Low (P25)', val: compStats.p25, cmp: currentPrice },
-                  { label: 'Market Min', val: compStats.min_price, cmp: currentPrice },
-                  { label: 'Market Max', val: compStats.max_price, cmp: currentPrice },
-                ].map(({ label, val, cmp }) => {
-                  const diff = val - cmp;
-                  const up = diff > 0;
-                  return (
-                    <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{label}</span>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, fontSize: '0.88rem' }}>
-                        ₹{fmt(val)}
-                        <span style={{ fontSize: '0.72rem', color: up ? '#22C55E' : '#EF4444', display: 'flex', alignItems: 'center', gap: 2 }}>
-                          {up ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
-                          {up ? '+' : ''}{Math.round(diff)}
-                        </span>
-                      </span>
-                    </div>
-                  );
-                })}
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', borderTop: '1px solid var(--border)', paddingTop: 8 }}>
-                  {compStats.count} competitor listings analysed
-                </div>
-              </div>
-            </div>
-          )}
+  // Load product list for the picker
+  useEffect(() => {
+    API.get('/api/products')
+      .then((res) => {
+        const list = res.data?.products || [];
+        setProducts(list);
+        if (!productId && list[0]) setProductId(list[0].id);
+      })
+      .catch(() => setProducts([]));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Fetch candidates
+  useEffect(() => {
+    if (!productId) return;
+    let cancelled = false;
+    setLoading(true);
+    API.get(`/api/strategy/generate/${productId}`, {
+      params: { objective, horizon_days: horizon, aggressiveness, top_k: 5 },
+    })
+      .then((res) => !cancelled && setData(res.data))
+      .catch(() => !cancelled && setData(null))
+      .finally(() => !cancelled && setLoading(false));
+    return () => { cancelled = true; };
+  }, [productId, objective, horizon, aggressiveness]);
+
+  const product = useMemo(
+    () => products.find((p) => p.id === productId),
+    [products, productId]
+  );
+
+  return (
+    <div className="sb">
+      <header className="sb__header">
+        <div>
+          <h1 className="sb__title">Strategy Builder</h1>
+          <p className="sb__sub">
+            Generate ranked pricing strategies powered by the ML multi-agent engine.
+          </p>
         </div>
-      )}
+        {product && (
+          <button
+            type="button"
+            className="sb__open-product"
+            onClick={() => navigate(`/app/products/${product.id}`)}
+          >
+            <Package size={13} />
+            Open workbench
+            <ChevronRight size={13} />
+          </button>
+        )}
+      </header>
 
-      {/* Row 4: 30-day revenue simulation chart */}
-      {simData.length > 0 && (
-        <div className="card" style={{ marginTop: 20 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
-            <div>
-              <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
-                30-Day Revenue Simulation
-              </h3>
-              <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
-                Projected daily revenue across all strategy archetypes
-              </p>
-            </div>
-            <span className="badge-accent">ML · XGBoost</span>
-          </div>
-          <ResponsiveContainer width="100%" height={280}>
-            <LineChart data={simData} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
-              <CartesianGrid stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" />
-              <XAxis
-                dataKey="day"
-                tick={{ fill: '#52525B', fontSize: 11 }}
-                axisLine={false} tickLine={false}
-                label={{ value: 'Day', position: 'insideBottomRight', offset: -8, fill: '#52525B', fontSize: 11 }}
-              />
-              <YAxis
-                tick={{ fill: '#52525B', fontSize: 11 }}
-                axisLine={false} tickLine={false}
-                tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`}
-              />
-              <Tooltip
-                contentStyle={TOOLTIP_STYLE}
-                formatter={(v, name) => [`₹${fmt(v)}`, name.replace('_', ' ')]}
-              />
-              {Object.keys(simData[0] || {})
-                .filter(k => k !== 'day')
-                .map((name) => (
-                  <Line
-                    key={name}
-                    type="monotone"
-                    dataKey={name}
-                    name={name}
-                    stroke={SIM_COLORS[name] || '#888'}
-                    strokeWidth={name === archetype ? 2.5 : 1.2}
-                    strokeDasharray={name === archetype ? undefined : '4 3'}
-                    dot={false}
-                    opacity={name === archetype ? 1 : 0.5}
-                  />
-                ))}
-              <ReferenceLine
-                x={1}
-                stroke="rgba(139,92,246,0.3)"
-                strokeDasharray="3 3"
-                label={{ value: 'Today', position: 'insideTopRight', fill: '#A78BFA', fontSize: 11 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-          {/* Legend */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginTop: 12 }}>
-            {Object.keys(simData[0] || {})
-              .filter(k => k !== 'day')
-              .map(name => (
-                <div key={name} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                  <span style={{ width: 24, height: 3, background: SIM_COLORS[name] || '#888', borderRadius: 2, display: 'inline-block', opacity: name === archetype ? 1 : 0.5 }} />
-                  {name.replace('_', ' ')}
-                  {name === archetype && (
-                    <span style={{ fontSize: '0.68rem', color: 'var(--accent)', fontWeight: 600 }}>← active</span>
-                  )}
-                </div>
+      {/* Controls */}
+      <section className="sb-controls card">
+        <div className="sb-controls__row">
+          <label className="sb-controls__field">
+            <span className="sb-controls__label">Product</span>
+            <ProductPicker products={products} value={productId} onChange={setProductId} />
+          </label>
+
+          <div className="sb-controls__field">
+            <span className="sb-controls__label">Objective</span>
+            <div className="sb-controls__pills">
+              {OBJECTIVES.map((o) => (
+                <button
+                  key={o.id}
+                  type="button"
+                  className={`sb-pill ${objective === o.id ? 'sb-pill--active' : ''}`}
+                  onClick={() => setObjective(o.id)}
+                >
+                  {o.label}
+                </button>
               ))}
+            </div>
           </div>
         </div>
+
+        <div className="sb-controls__row">
+          <div className="sb-controls__field">
+            <span className="sb-controls__label">Horizon</span>
+            <div className="sb-controls__pills">
+              {HORIZONS.map((h) => (
+                <button
+                  key={h}
+                  type="button"
+                  className={`sb-pill ${horizon === h ? 'sb-pill--active' : ''}`}
+                  onClick={() => setHorizon(h)}
+                >
+                  {h} days
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="sb-controls__field sb-controls__field--slider">
+            <span className="sb-controls__label">
+              Aggressiveness · {Math.round(aggressiveness * 100)}%
+            </span>
+            <input
+              type="range"
+              min={0}
+              max={1}
+              step={0.05}
+              value={aggressiveness}
+              onChange={(e) => setAggressiveness(Number(e.target.value))}
+              className="pe-scenario__range"
+            />
+            <div className="sb-controls__slider-ticks">
+              <span>Conservative</span>
+              <span>Aggressive</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Summary strip */}
+      {data && product && (
+        <motion.div
+          className="sb-summary"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+        >
+          <div className="sb-summary__cell">
+            <span>Current price</span>
+            <strong>₹{Number(product.current_price).toLocaleString('en-IN')}</strong>
+          </div>
+          <div className="sb-summary__cell">
+            <span>Strategies evaluated</span>
+            <strong>{data.all_candidates_count}</strong>
+          </div>
+          <div className="sb-summary__cell">
+            <span>Top recommendation</span>
+            <strong>{data.strategies?.[0]?.name}</strong>
+          </div>
+          <div className="sb-summary__cell">
+            <span>Best uplift</span>
+            <strong className={data.strategies?.[0]?.expected_revenue_uplift_pct >= 0 ? 'is-up' : 'is-down'}>
+              {data.strategies?.[0]?.expected_revenue_uplift_pct >= 0 ? '+' : ''}
+              {data.strategies?.[0]?.expected_revenue_uplift_pct?.toFixed(1)}%
+            </strong>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Cards */}
+      {loading ? (
+        <div className="sb-loading">
+          <Loader2 size={24} className="pw-spin" />
+          <p>Running strategies through ML engine…</p>
+        </div>
+      ) : !data?.strategies?.length ? (
+        <div className="pw-empty">
+          <Target size={32} strokeWidth={1.25} />
+          <h3>No strategies generated</h3>
+          <p>Pick a product to get started.</p>
+        </div>
+      ) : (
+        <motion.div
+          className="sb-grid"
+          variants={stagger(0.06, 0)}
+          initial="initial"
+          animate="animate"
+        >
+          {data.strategies.map((s, i) => (
+            <StrategyCard key={s.name} s={s} isLeader={i === 0} />
+          ))}
+        </motion.div>
       )}
     </div>
   );
 }
-
