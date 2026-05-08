@@ -2,8 +2,36 @@ services:
   - type: web
     name: pricing-engine-backend
     env: python
+    region: oregon
+    plan: free
     buildCommand: "cd backend && pip install -r requirements.txt"
     startCommand: "cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT"
     envVars:
       - key: PYTHON_VERSION
-        value: 3.12.0
+        value: "3.12.0"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: priceengine-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALGORITHM
+        value: HS256
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "1440"
+      - key: FRONTEND_URL
+        value: https://pricing-strategy-nine.vercel.app
+      - key: ENABLE_PLAYWRIGHT
+        value: "false"
+      - key: ENABLE_SELENIUM
+        value: "false"
+      - key: GROQ_API_KEY
+        sync: false
+      - key: SERPAPI_KEY
+        sync: false
+
+databases:
+  - name: priceengine-db
+    databaseName: priceengine
+    user: priceengine
+    plan: free

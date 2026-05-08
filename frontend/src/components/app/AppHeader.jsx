@@ -8,6 +8,16 @@ const TITLES = {
   '/app/strategy':         'Strategy Builder',
   '/app/scraper':          'Competitor Scraper',
   '/app/marketplace':      'Marketplace Insights',
+  '/app/intelligence':     'Intelligence Hub',
+  '/app/ml':               'ML Engine',
+  '/app/competitor-reaction': 'Competitor Reaction',
+  '/app/inventory':           'Inventory Optimization',
+  '/app/segments':           'Customer Segmentation',
+  '/app/ai-copilot':         'AI Copilot',
+  '/app/simulator':          'Scenario Simulator',
+  '/app/pipeline':           'Intelligence Pipeline',
+  '/app/automations':        'Automations',
+  '/app/settings':           'Settings',
 };
 
 function resolveTitle(pathname) {

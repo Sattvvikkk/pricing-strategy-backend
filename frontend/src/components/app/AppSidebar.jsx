@@ -1,20 +1,19 @@
 import { useState, useMemo } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
-  LayoutDashboard, BarChart2, Radio, Globe, BrainCircuit, Cpu, FlaskConical,
+  LayoutDashboard, Workflow, Bot, Zap, Settings,
 } from 'lucide-react';
 
 import { useAuth } from '../../context/AuthContext';
 import { useProduct } from '../../context/ProductContext';
+import BrandLogo from '../BrandLogo';
 
 const NAV_ITEMS = [
-  { to: '/app',                  label: 'Dashboard',        Icon: LayoutDashboard, end: true },
-  { to: '/app/analytics',        label: 'Analytics',        Icon: BarChart2 },
-  { to: '/app/intelligence',     label: 'Intelligence Hub', Icon: Cpu },
-  { to: '/app/ml',               label: 'ML Engine',        Icon: FlaskConical },
-  { to: '/app/strategy',         label: 'Strategy Builder', Icon: BrainCircuit },
-  { to: '/app/scraper',          label: 'Scraper',          Icon: Radio },
-  { to: '/app/marketplace',      label: 'Marketplace',      Icon: Globe },
+  { to: '/app',              label: 'Overview',     Icon: LayoutDashboard, end: true },
+  { to: '/app/pipeline',     label: 'Pipeline',     Icon: Workflow },
+  { to: '/app/ai-copilot',   label: 'AI Copilot',   Icon: Bot },
+  { to: '/app/automations',  label: 'Automations',  Icon: Zap },
+  { to: '/app/settings',     label: 'Settings',     Icon: Settings },
 ];
 
 const FILTERS = ['All', 'T-Shirts', 'Jeans', 'Dresses', 'Jackets'];
@@ -60,8 +59,8 @@ export default function AppSidebar() {
       {/* Top — logo */}
       <div className="pe-sidebar__top">
         <div className="pe-sidebar__brand">
-          <span className="pe-sidebar__mark" />
-          <span className="pe-sidebar__brand-text">PriceEngine</span>
+          <BrandLogo size={26} className="pe-sidebar__logo" />
+          <span className="pe-sidebar__brand-text">NextGen BI</span>
         </div>
         <div className="pe-sidebar__sublabel">Vouge Studio · Pro</div>
       </div>
@@ -79,7 +78,7 @@ export default function AppSidebar() {
                 `pe-nav-item ${isActive ? 'pe-nav-item--active' : ''}`
               }
             >
-              <Icon size={16} className="pe-nav-item__icon" />
+              <Icon size={18} strokeWidth={1.75} className="pe-nav-item__icon" />
               <span>{label}</span>
             </NavLink>
           ))}

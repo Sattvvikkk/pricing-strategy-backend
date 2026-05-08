@@ -51,6 +51,10 @@ from routes.strategy import router as strategy_router
 from routes.ai_copilot import router as ai_copilot_router
 from routes.intelligence import router as intelligence_router
 from routes.ml_predictions import router as ml_predictions_router
+from routes.competitor_reaction import router as competitor_reaction_router
+from routes.inventory_optimization import router as inventory_optimization_router
+from routes.customer_segmentation import router as customer_segmentation_router
+from routes.scenario_simulator import router as scenario_simulator_router
 
 
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
@@ -102,6 +106,10 @@ app.include_router(marketplace_router)
 app.include_router(ai_copilot_router)
 app.include_router(intelligence_router)
 app.include_router(ml_predictions_router)
+app.include_router(competitor_reaction_router)
+app.include_router(inventory_optimization_router)
+app.include_router(customer_segmentation_router)
+app.include_router(scenario_simulator_router)
 
 
 # ── Health check ─────────────────────────────────────────────────────────────

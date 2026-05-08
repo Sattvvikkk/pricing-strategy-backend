@@ -233,6 +233,123 @@ class RevenueAgent:
         )
 
 
+class MarketingAgent:
+    """Analyzes marketing and promotional opportunities."""
+    
+    def __init__(self, strategy_data: Dict[str, Any]):
+        self.strategy_data = strategy_data
+        self.name = "Marketing Agent"
+    
+    def analyze(self, goal: BusinessGoal) -> AgentAnalysis:
+        """Analyze marketing implications."""
+        triggers = self.strategy_data.get("triggers", [])
+        action_plan = self.strategy_data.get("action_plan", [])
+        archetype = self.strategy_data.get("archetype", "HOLD")
+        
+        # Count promotion-related triggers
+        promo_triggers = [t for t in triggers if "discount" in t.get("condition", "").lower() or "promotion" in t.get("condition", "").lower()]
+        
+        # Goal-specific marketing analysis
+        if goal.goal_type == "maximize_profit":
+            finding = (
+                f"Marketing focus should emphasize value positioning over price cuts. "
+                f"With {len(promo_triggers)} promotional triggers planned, maintain brand premium "
+                f"while using targeted promotions to drive volume without eroding margins."
+            )
+        elif goal.goal_type == "increase_revenue":
+            finding = (
+                f"Revenue growth requires aggressive promotional calendar. "
+                f"The {archetype.lower()} strategy supports {len(promo_triggers)} flash sales "
+                f"over {len(action_plan)} days, maximizing top-line while protecting market share."
+            )
+        else:
+            finding = (
+                f"Marketing should align with {archetype.lower()} positioning. "
+                f"Planned {len(promo_triggers)} promotional activities will support "
+                f"brand perception while driving tactical objectives."
+            )
+        
+        return AgentAnalysis(
+            agent_name=self.name,
+            focus="Marketing optimization",
+            key_findings=[
+                f"Promotional triggers: {len(promo_triggers)}",
+                f"Action plan duration: {len(action_plan)} days",
+                f"Marketing alignment: {archetype} positioning"
+            ],
+            recommendation=finding,
+            confidence=0.8
+        )
+
+
+class TrendAgent:
+    """Analyzes fashion/trend signals and viral potential."""
+    
+    def __init__(self, strategy_data: Dict[str, Any]):
+        self.strategy_data = strategy_data
+        self.name = "Trend Agent"
+    
+    def analyze(self, goal: BusinessGoal) -> AgentAnalysis:
+        """Analyze trend signals."""
+        product_name = self.strategy_data.get("product_name", "Product")
+        archetype = self.strategy_data.get("archetype", "HOLD")
+        
+        # Simulate trend analysis (in real implementation, would use external trend APIs)
+        trend_signals = {
+            "cotton_tee": "stable_baseline",
+            "denim": "seasonal_peak",
+            "dress": "trending_up",
+            "jacket": "declining"
+        }
+        
+        # Extract category from product name
+        category = "cotton_tee"  # default
+        for key in trend_signals:
+            if key in product_name.lower():
+                category = key
+                break
+        
+        trend_signal = trend_signals.get(category, "stable_baseline")
+        
+        # Goal-specific trend analysis
+        if trend_signal == "trending_up":
+            finding = (
+                f"Strong upward trend detected for {category.replace('_', ' ')} category. "
+                f"The {archetype.lower()} strategy positions you to capture viral momentum. "
+                f"Expect 20-30% demand surge over next 14 days."
+            )
+        elif trend_signal == "seasonal_peak":
+            finding = (
+                f"Seasonal peak approaching for {category.replace('_', ' ')} products. "
+                f"Current {archetype.lower()} strategy aligns with seasonal demand patterns. "
+                f"Optimize pricing now to maximize seasonal capture."
+            )
+        elif trend_signal == "declining":
+            finding = (
+                f"Category showing decline trend. "
+                f"The {archetype.lower()} strategy helps mitigate downside risk. "
+                f"Consider promotional acceleration to clear inventory before further decline."
+            )
+        else:
+            finding = (
+                f"Stable trend baseline for {category.replace('_', ' ')}. "
+                f"{archetype.title()} strategy provides balanced approach. "
+                f"No viral signals detected - focus on consistent execution."
+            )
+        
+        return AgentAnalysis(
+            agent_name=self.name,
+            focus="Trend analysis",
+            key_findings=[
+                f"Category: {category.replace('_', ' ').title()}",
+                f"Trend signal: {trend_signal.replace('_', ' ').title()}",
+                f"Viral potential: {'High' if trend_signal == 'trending_up' else 'Low'}"
+            ],
+            recommendation=finding,
+            confidence=0.75
+        )
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # LLM-Based Strategy Narrative Generator
 # ─────────────────────────────────────────────────────────────────────────────
@@ -272,16 +389,16 @@ You are an elite pricing strategist and business consultant. Generate a strategi
 **Product**: {product_name}
 **Market Position**: {archetype}
 
-**Agent Analysis Summary**:
+**Multi-Agent Analysis Summary**:
 {chr(10).join(agent_summaries)}
 
 Write a compelling 3-paragraph executive strategy narrative that:
-1. Opens with the core strategic opportunity aligned to the business goal
-2. Explains the market dynamics and why this strategy works
-3. Closes with the expected impact and confidence level
+1. Opens with the core strategic opportunity and market dynamics
+2. Explains the multi-agent intelligence (pricing, competition, inventory, marketing, trends, revenue)
+3. Closes with the expected impact, confidence level, and immediate action required
 
 Be specific with numbers, percentages, and timeframes. Use present tense. Write for a CFO/COO.
-Avoid jargon. Be direct and confident.
+Avoid jargon. Be direct and confident. Focus on business outcomes.
 """
         
         try:
@@ -357,6 +474,8 @@ class AIStrategyOrchestrator:
             PricingAgent(strategy_data),
             CompetitorAgent(strategy_data),
             InventoryAgent(strategy_data),
+            MarketingAgent(strategy_data),
+            TrendAgent(strategy_data),
             RevenueAgent(strategy_data),
         ]
         
@@ -369,10 +488,10 @@ class AIStrategyOrchestrator:
         # Generate strategic narrative
         narrative = self.narrative_generator.generate(goal, analyses, strategy_data)
         
-        # Extract key insights
+        # Extract key insights from all agents
         key_insights = [
             f"{a.focus}: {a.key_findings[0]}"
-            for a in analyses[:3]
+            for a in analyses[:4]  # Top 4 insights
         ]
         
         # Build recommended action

@@ -258,7 +258,7 @@ async def copilot_chat(
     
     # Get strategy
     try:
-        strategy_response = await get_strategy_for_product(request.product_id, db)
+        strategy_response = get_strategy(request.product_id, db)
         strategy_data = strategy_response.model_dump()
     except Exception as e:
         logger.error(f"Strategy retrieval failed: {e}")

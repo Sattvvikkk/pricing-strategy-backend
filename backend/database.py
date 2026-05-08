@@ -7,6 +7,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./priceengine.db")
+# Render provides postgres:// but SQLAlchemy 2.x requires postgresql://
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
 # psycopg2 requires no connect_args for PostgreSQL; SQLite needs check_same_thread
 connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}

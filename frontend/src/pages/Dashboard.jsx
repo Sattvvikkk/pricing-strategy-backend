@@ -11,6 +11,7 @@ import {
 import API from '../api/client';
 import { useProduct } from '../context/ProductContext';
 import StrategyCard from '../components/StrategyCard';
+import LiveInsightsFeed from '../components/LiveInsightsFeed';
 
 const TOOLTIP_STYLE = {
   background: '#1A1A1A',
@@ -171,6 +172,9 @@ export default function Dashboard() {
     <div className="pe-dashboard">
       {/* Row 1 — Strategy Card */}
       <StrategyCard productId={productId} />
+
+      {/* Live Intelligence Feed */}
+      <LiveInsightsFeed />
 
       {/* Row 2 — KPI tiles */}
       <div className="pe-dashboard__kpis">
