@@ -20,7 +20,7 @@ services:
       - key: ACCESS_TOKEN_EXPIRE_MINUTES
         value: "1440"
       - key: FRONTEND_URL
-        value: https://pricing-strategy-nine.vercel.app
+        value: https://pricing-strategy-zeta.vercel.app
       - key: ENABLE_PLAYWRIGHT
         value: "false"
       - key: ENABLE_SELENIUM
