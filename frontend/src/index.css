@@ -1874,6 +1874,15 @@ body::before {
   flex-shrink: 0;
 }
 
+.pe-sidebar__brand-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+.pe-sidebar__brand-link:hover { opacity: 0.85; }
+
 .pe-sidebar__brand {
   display: flex;
   align-items: center;

@@ -500,14 +500,29 @@ DEFAULT_PRODUCTS = {
 }
 
 
+from services.catalog_expansion import EXTRA_CATALOGUE, attach_image
+
+
+def _full_catalogue() -> dict:
+    """Curated 20 SKUs + ~100 generated SKUs, with images attached."""
+    merged = {pid: attach_image(dict(p)) for pid, p in DEFAULT_PRODUCTS.items()}
+    for pid, p in EXTRA_CATALOGUE.items():
+        if pid not in merged:
+            merged[pid] = p
+    return merged
+
+
+_CATALOGUE = _full_catalogue()
+
+
 def get_all_products() -> list[dict]:
-    """Return all 20 Vouge Studio products as a list of dicts."""
-    return list(DEFAULT_PRODUCTS.values())
+    """Return the full Vouge Studio catalogue (curated + extended)."""
+    return list(_CATALOGUE.values())
 
 
 def get_product_by_id(product_id: str) -> dict | None:
     """Return a single product dict by ID, or None if not found."""
-    return DEFAULT_PRODUCTS.get(product_id)
+    return _CATALOGUE.get(product_id)
 
 
 # Alias used by dashboard/analytics routes
@@ -517,4 +532,4 @@ get_product = get_product_by_id
 def get_products_by_category(category: str) -> list[dict]:
     """Return all products matching a given category (case-insensitive)."""
     cat = category.strip().lower()
-    return [p for p in DEFAULT_PRODUCTS.values() if p["category"].lower() == cat]
+    return [p for p in _CATALOGUE.values() if p["category"].lower() == cat]

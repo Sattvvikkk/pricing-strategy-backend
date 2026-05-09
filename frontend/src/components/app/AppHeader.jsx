@@ -8,7 +8,7 @@ const TITLES = {
   '/app/strategy':         'Strategy Builder',
   '/app/scraper':          'Competitor Scraper',
   '/app/marketplace':      'Marketplace Insights',
-  '/app/intelligence':     'Intelligence Hub',
+  '/app/intelligence':     'Marketplace Intelligence',
   '/app/ml':               'ML Engine',
   '/app/competitor-reaction': 'Competitor Reaction',
   '/app/inventory':           'Inventory Optimization',

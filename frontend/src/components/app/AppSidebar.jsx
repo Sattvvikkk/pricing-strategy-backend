@@ -9,7 +9,7 @@ import BrandLogo from '../BrandLogo';
 // Modules-only sidebar (no products listed here — Overview is the product universe)
 const NAV_ITEMS = [
   { to: '/app',                 label: 'Overview',               Icon: LayoutDashboard, end: true },
-  { to: '/app/intelligence',    label: 'Intelligence',           Icon: BrainCircuit },
+  { to: '/app/intelligence',    label: 'Marketplace Intelligence', Icon: BrainCircuit },
   { to: '/app/strategy',        label: 'Strategy Builder',       Icon: Target },
   { to: '/app/pricing-engine',  label: 'Dynamic Pricing Engine', Icon: Gauge },
   { to: '/app/ai-copilot',      label: 'AI Copilot',             Icon: Bot },
@@ -33,11 +33,13 @@ export default function AppSidebar() {
     <aside className="pe-sidebar">
       {/* Top — logo */}
       <div className="pe-sidebar__top">
-        <div className="pe-sidebar__brand">
-          <BrandLogo size={26} className="pe-sidebar__logo" />
-          <span className="pe-sidebar__brand-text">NextGen BI</span>
-        </div>
-        <div className="pe-sidebar__sublabel">Vouge Studio · Pro</div>
+        <NavLink to="/" className="pe-sidebar__brand-link">
+          <div className="pe-sidebar__brand">
+            <BrandLogo size={26} className="pe-sidebar__logo" />
+            <span className="pe-sidebar__brand-text">NextGen BI</span>
+          </div>
+          <div className="pe-sidebar__sublabel">Vouge Studio · Pro</div>
+        </NavLink>
       </div>
 
       {/* Modules */}

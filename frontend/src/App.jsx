@@ -24,6 +24,7 @@ import CustomerSegmentation from './pages/CustomerSegmentation';
 import AICopilot from './pages/AICopilot';
 import ScenarioSimulator from './pages/ScenarioSimulator';
 import IntelligencePipeline from './pages/IntelligencePipeline';
+import MarketplaceIntelligence from './pages/MarketplaceIntelligence';
 import Automations from './pages/Automations';
 import Settings from './pages/Settings';
 import Landing from './pages/Landing';
@@ -52,7 +53,7 @@ export default function App() {
             <Route path="/app"                  element={<AppPage><Overview /></AppPage>} />
             <Route path="/app/dashboard"        element={<AppPage><Dashboard /></AppPage>} />
             <Route path="/app/analytics"        element={<AppPage><Analytics /></AppPage>} />
-            <Route path="/app/intelligence"     element={<AppPage><IntelligencePipeline /></AppPage>} />
+            <Route path="/app/intelligence"     element={<AppPage><MarketplaceIntelligence /></AppPage>} />
             <Route path="/app/strategy"         element={<AppPage><StrategyBuilder /></AppPage>} />
             <Route path="/app/pricing-engine"   element={<AppPage><PricingEngine /></AppPage>} />
             <Route path="/app/scraper"          element={<AppPage><Scraper /></AppPage>} />
