@@ -1,4 +1,4 @@
-"""Data Seeder — seeds 20 products + 90 days of synthetic sales + competitor history."""
+"""Data Seeder — seeds 40 products + 90 days of synthetic sales + competitor history."""
 import random
 from datetime import date, timedelta
 

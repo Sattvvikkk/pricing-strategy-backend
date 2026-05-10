@@ -2,7 +2,7 @@
 Catalog Expansion - generates additional deterministic SKUs and attaches
 real Unsplash photo URLs to every product.
 
-The 20 hand-curated SKUs in product_catalog.DEFAULT_PRODUCTS are kept as-is.
+The 40 hand-curated SKUs in product_catalog.DEFAULT_PRODUCTS are kept as-is.
 This module produces ~100 extra dummy SKUs (Vouge Studio extended catalogue)
 so the Overview feels like a full operating brand, not a demo.
 

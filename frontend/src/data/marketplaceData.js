@@ -3,14 +3,17 @@
  * Only public, marketplace-visible fields are modelled (no hidden ranks/sales).
  */
 
-export const CATEGORIES = ['Dresses', 'Oversized Tees', 'Kurtas', 'Cargo Pants', 'Co-ord Sets'];
+export const CATEGORIES = ['T-Shirts', 'Jeans', 'Dresses', 'Jackets', 'Shirts', 'Trousers', 'Sweatshirts', 'Activewear'];
 
 export const SKU_OPTIONS = {
-  Dresses:        ['VS-DRS-CRL-S', 'VS-DRS-FLR-M', 'VS-DRS-IVR-L', 'VS-DRS-BLK-S'],
-  'Oversized Tees': ['VS-OST-WHT-M', 'VS-OST-OLV-L', 'VS-OST-CHR-M'],
-  Kurtas:         ['VS-KRT-IND-S', 'VS-KRT-MTD-M', 'VS-KRT-RST-L'],
-  'Cargo Pants':  ['VS-CRG-OLV-M', 'VS-CRG-STN-L', 'VS-CRG-BLK-M'],
-  'Co-ord Sets':  ['VS-COD-LIN-S', 'VS-COD-CRM-M', 'VS-COD-BLU-L'],
+  'T-Shirts':     ['VS-TS-BLK-OS', 'VS-TS-WHT-RG', 'VS-TS-BGE-VT', 'VS-TS-GRN-GR', 'VS-TS-NVY-AT'],
+  'Jeans':        ['VS-JN-BLU-SK', 'VS-JN-BLK-ST', 'VS-JN-LBL-WD', 'VS-JN-GRY-CR', 'VS-JN-IND-RL'],
+  'Dresses':      ['VS-DR-CRL-WR', 'VS-DR-BLK-MD', 'VS-DR-PNK-SL', 'VS-DR-WHT-SM', 'VS-DR-BLU-BD'],
+  'Jackets':      ['VS-JK-BLK-BM', 'VS-JK-OLV-UT', 'VS-JK-DNM-TR', 'VS-JK-CRM-PF', 'VS-JK-GRY-ST'],
+  'Shirts':       ['VS-SH-WHT-LN', 'VS-SH-BLU-ST', 'VS-SH-BLK-ST', 'VS-SH-GRN-RS', 'VS-SH-BGE-OV'],
+  'Trousers':     ['VS-TR-BLK-CR', 'VS-TR-BGE-WL', 'VS-TR-GRY-PL', 'VS-TR-OLV-JG', 'VS-TR-NVY-SM'],
+  'Sweatshirts':  ['VS-SW-GRY-OS', 'VS-SW-BLK-MN', 'VS-SW-CRM-VN', 'VS-SW-GRN-HD', 'VS-SW-NVY-ZP'],
+  'Activewear':   ['VS-AW-BLK-CP', 'VS-AW-GRY-JG', 'VS-AW-BLU-RN', 'VS-AW-OLV-TK', 'VS-AW-PNK-YG'],
 };
 
 export const MARKETPLACES = [
@@ -98,11 +101,14 @@ const POSITIONING = [
 ];
 
 const IMAGE_BY_CATEGORY = {
-  'Dresses':        'photo-1539109136881-3be0616acf4b',
-  'Oversized Tees': 'photo-1521572163474-6864f9cf17ab',
-  'Kurtas':         'photo-1583391733956-3750e0ff4e8b',
-  'Cargo Pants':    'photo-1473966968600-fa801b869a1a',
-  'Co-ord Sets':    'photo-1490481651871-ab68de25d43d',
+  'T-Shirts':     'photo-1521572163474-6864f9cf17ab',
+  'Jeans':        'photo-1542272604-787c3835535d',
+  'Dresses':      'photo-1539109136881-3be0616acf4b',
+  'Jackets':      'photo-1551028719-00167b16eac5',
+  'Shirts':       'photo-1602810316693-3667c854239a',
+  'Trousers':     'photo-1594938298603-c8148c4dae35',
+  'Sweatshirts':  'photo-1556905055-8f358a7a47b2',
+  'Activewear':   'photo-1518611012118-696072aa579a',
 };
 
 function _hash(s) {
