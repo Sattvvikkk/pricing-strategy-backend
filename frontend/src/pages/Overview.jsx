@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState, useCallback } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -1302,7 +1302,7 @@ export default function Overview() {
                           minWidth: 160,
                         }}>
                           <div style={{
-                            fontFamily: "'Playfair Display', Georgia, serif",
+                            fontFamily: "'Inter', system-ui, sans-serif",
                             fontSize: 14,
                             fontWeight: 500,
                             marginBottom: 6,

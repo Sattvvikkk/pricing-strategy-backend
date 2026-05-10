@@ -47,7 +47,7 @@
   margin-bottom: 12px;
 }
 .ovx-hero__title {
-  font-family: 'Playfair Display', 'Cormorant Garamond', Georgia, serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 44px;
   font-weight: 500;
   letter-spacing: -0.01em;
@@ -94,7 +94,7 @@
   font-weight: 500;
 }
 .ovx-metric__value {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 28px;
   font-weight: 500;
   color: var(--ovx-ink);
@@ -128,7 +128,7 @@
   flex-wrap: wrap;
 }
 .ovx-section__head h2 {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 26px;
   font-weight: 500;
   color: var(--ovx-ink);
@@ -201,7 +201,7 @@
   pointer-events: none;
 }
 .ovx-cat__cover-name {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 24px;
   font-weight: 500;
   position: relative;
@@ -302,7 +302,7 @@
   align-items: center;
   justify-content: center;
   color: rgba(255,255,255,0.85);
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 56px;
   font-weight: 500;
   letter-spacing: 0.04em;
@@ -331,7 +331,7 @@
   padding: 16px 18px 12px;
 }
 .ovx-card__name {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 18px;
   font-weight: 500;
   color: var(--ovx-ink);
@@ -412,7 +412,7 @@
   padding: 22px 22px 18px;
 }
 .ovx-health__panel h4 {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 17px;
   font-weight: 500;
   color: var(--ovx-ink);
@@ -629,7 +629,7 @@
   z-index: 1;
 }
 .ovx-drawer__hero-mono {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 110px;
   color: rgba(255,255,255,0.85);
   font-weight: 500;
@@ -647,7 +647,7 @@
   border-bottom: 1px solid var(--ovx-line);
 }
 .ovx-drawer__head h2 {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 26px;
   font-weight: 500;
   margin: 0 0 4px;
@@ -736,7 +736,7 @@
 }
 .ovx-drawer__readiness-head h4 { margin: 0; }
 .ovx-drawer__readiness-pct {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 22px;
   font-weight: 500;
   color: var(--ovx-good);
@@ -789,7 +789,7 @@
   gap: 12px;
 }
 .ovx-chart__head h4 {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 17px;
   font-weight: 500;
   color: var(--ovx-ink);
@@ -852,7 +852,7 @@
   color: var(--ovx-ink-2);
 }
 .ovx-movers__head h4 {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 17px;
   font-weight: 500;
   color: var(--ovx-ink);
@@ -884,7 +884,7 @@
 }
 .ovx-movers__list li:hover { background: var(--ovx-cream); }
 .ovx-movers__rank {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 18px;
   color: var(--ovx-ink-3);
   width: 20px;
@@ -1039,7 +1039,7 @@
   margin-bottom: 6px;
 }
 .ovx-cmodal__head h2 {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 28px;
   font-weight: 500;
   color: var(--ovx-ink);
@@ -1107,7 +1107,7 @@
   position: absolute; inset: 0;
   display: flex; align-items: center; justify-content: center;
   color: rgba(255,255,255,0.85);
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 22px;
   font-weight: 500;
   z-index: 0;
@@ -1118,7 +1118,7 @@
   min-width: 0;
 }
 .ovx-cmodal__name {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 16px;
   font-weight: 500;
   color: var(--ovx-ink);
@@ -1229,7 +1229,7 @@
   margin-bottom: 4px;
 }
 .ovx-brief__head h2 {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 22px;
   font-weight: 500;
   color: var(--ovx-ink);
@@ -1238,7 +1238,7 @@
 }
 .ovx-brief__hero-num { text-align: right; }
 .ovx-brief__hero-val {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 30px;
   font-weight: 500;
   color: var(--ovx-ink);
@@ -1283,7 +1283,7 @@
   margin-bottom: 6px;
 }
 .ovx-brief__card-name {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 16px;
   font-weight: 500;
   color: var(--ovx-ink);
@@ -1323,7 +1323,7 @@
   gap: 2px;
 }
 .ovx-brief__chip strong {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 22px;
   font-weight: 500;
   letter-spacing: -0.01em;
@@ -1448,7 +1448,7 @@
 }
 .ovx-ia__metrics dd {
   margin: 0;
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 22px;
   font-weight: 500;
   color: var(--ovx-ink);
@@ -1638,7 +1638,7 @@
   margin-bottom: 10px;
 }
 .ovx-an__insight-val {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 28px;
   font-weight: 500;
   color: var(--ovx-ink);
@@ -1669,7 +1669,7 @@
   gap: 12px;
 }
 .ovx-an__panel-head h4 {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 17px;
   font-weight: 500;
   color: var(--ovx-ink);
@@ -1727,7 +1727,7 @@
   background: none;
   border: none;
   cursor: pointer;
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 15px;
   color: var(--ovx-ink);
   font-weight: 500;
