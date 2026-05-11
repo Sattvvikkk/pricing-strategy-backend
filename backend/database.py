@@ -30,6 +30,11 @@ def get_db():
 
 def init_db():
     """Create all tables defined on Base."""
-    # Import all models so SQLAlchemy registers them before create_all
-    import models  # noqa: F401
-    Base.metadata.create_all(bind=engine)
+    try:
+        # Import all models so SQLAlchemy registers them before create_all
+        import models  # noqa: F401
+        Base.metadata.create_all(bind=engine)
+        print("Database tables created successfully")
+    except Exception as e:
+        print(f"Error creating database tables: {e}")
+        raise

@@ -238,15 +238,15 @@ export default function Dashboard() {
           ) : (
             <ResponsiveContainer width="100%" height={260}>
               <LineChart data={chartData} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
-                <CartesianGrid stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" />
+                <CartesianGrid stroke="#E6EDE5" strokeDasharray="3 3" />
                 <XAxis
                   dataKey="date"
-                  tick={{ fill: '#52525B', fontSize: 11 }}
+                  tick={{ fill: '#0A1F14', fontSize: 11 }}
                   axisLine={false}
                   tickLine={false}
                 />
                 <YAxis
-                  tick={{ fill: '#52525B', fontSize: 11 }}
+                  tick={{ fill: '#0A1F14', fontSize: 11 }}
                   axisLine={false}
                   tickLine={false}
                 />

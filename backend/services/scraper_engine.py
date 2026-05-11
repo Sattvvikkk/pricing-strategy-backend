@@ -5,7 +5,7 @@ Tier 3 — Selenium       (ENABLE_SELENIUM=true)
 Tier 4 — Static fallback (always works)
 """
 from __future__ import annotations
-import asyncio, logging, os, random, time
+import asyncio, logging, os, random, time, re
 from typing import AsyncGenerator
 from urllib.parse import quote_plus
 import httpx
@@ -14,19 +14,114 @@ from services.product_catalog import get_product_by_id, DEFAULT_PRODUCTS
 logger = logging.getLogger(__name__)
 
 # ── Static data ──────────────────────────────────────────────────────────────
-_RANGES = {"T-Shirts":(499,1799),"Jeans":(1499,3999),"Dresses":(999,3499),"Jackets":(1999,6999)}
-_TITLES = {
-    "T-Shirts":["Men's Classic Cotton Crew-Neck Tee","Solid Regular Fit Half-Sleeve Tee","Premium Combed Cotton T-Shirt","Relaxed Fit Plain Tee","Everyday Essential Round-Neck T-Shirt"],
-    "Jeans":["Slim-Fit Stretch Denim Jeans","Classic Mid-Rise Tapered Jeans","Relaxed Fit Dark-Wash Jeans","Skinny Jeans Slight Stretch","Regular Fit Cotton Denim"],
-    "Dresses":["Floral Wrap Midi Dress","Solid A-Line Knee-Length Dress","Casual Fit-and-Flare Summer Dress","Shirt Dress with Belt","Linen Sleeveless Midi Dress"],
-    "Jackets":["Lightweight Bomber Jacket","Classic Denim Jacket","Quilted Puffer Jacket","Slim-Fit Blazer","Hooded Windbreaker"],
+_RANGES = {
+    "T-Shirts":   (499, 1799),
+    "Jeans":      (1499, 3999),
+    "Dresses":    (999, 3499),
+    "Jackets":    (1999, 6999),
+    "Shirts":     (699, 2499),
+    "Trousers":   (799, 2999),
+    "Sweatshirts":(899, 2999),
+    "Activewear": (599, 2499),
 }
+
+# Title templates — {color} and {fit} are filled with the queried attributes.
+_TITLE_TEMPLATES = {
+    "T-Shirts": [
+        "{color} {fit} T-Shirt",
+        "{color} Half-Sleeve {fit} Tee",
+        "Solid {color} {fit} T-Shirt",
+        "{color} Cotton {fit} Round-Neck Tee",
+        "Premium {color} {fit} T-Shirt",
+        "Everyday {color} {fit} Tee",
+        "{color} Drop-Shoulder {fit} T-Shirt",
+        "Classic {color} {fit} Half-Sleeve Tee",
+    ],
+    "Jeans": [
+        "{color} {fit} Denim Jeans",
+        "{color} Mid-Rise {fit} Jeans",
+        "Stretch {color} {fit} Jeans",
+        "{color} {fit} Denim",
+        "Classic {color} {fit} Jeans",
+    ],
+    "Jackets": [
+        "{color} {fit} Bomber Jacket",
+        "{color} Lightweight {fit} Jacket",
+        "{color} {fit} Windbreaker",
+        "Quilted {color} {fit} Jacket",
+        "{color} Denim {fit} Jacket",
+    ],
+    "Shirts": [
+        "{color} {fit} Casual Shirt",
+        "{color} Full-Sleeve {fit} Shirt",
+        "Solid {color} {fit} Shirt",
+        "{color} Cotton {fit} Shirt",
+        "{color} {fit} Linen Shirt",
+    ],
+    "Trousers": [
+        "{color} {fit} Trousers",
+        "{color} {fit} Chinos",
+        "Formal {color} {fit} Trousers",
+        "{color} Stretch {fit} Pants",
+        "{color} {fit} Cargo Trousers",
+    ],
+    "Sweatshirts": [
+        "{color} {fit} Sweatshirt",
+        "{color} Fleece {fit} Sweatshirt",
+        "{color} Graphic {fit} Sweatshirt",
+        "Cozy {color} {fit} Pullover",
+        "{color} {fit} Hoodie",
+    ],
+    "Activewear": [
+        "{color} {fit} Activewear Top",
+        "{color} Compression {fit} Tee",
+        "{color} Moisture-Wicking {fit} Top",
+        "{color} Sports {fit} Vest",
+        "Performance {color} {fit} Shirt",
+    ],
+    "Dresses": [
+        "{color} {fit} Midi Dress",
+        "{color} Wrap {fit} Dress",
+        "Solid {color} {fit} A-Line Dress",
+        "{color} {fit} Maxi Dress",
+        "{color} Shift {fit} Dress",
+    ],
+}
+
+# Brand lists per marketplace (15 per platform matches frontend)
 _MP_MERCHANTS = {
-    "Amazon":   ["H&M India","Campus Sutra","Bewakoof","Roadster","Urbanic"],
-    "Flipkart": ["HRX by Hrithik","Allen Solly","Van Heusen","Arrow","Puma"],
-    "Myntra":   ["Nike India","Adidas","Levis India","US Polo","Jack & Jones"],
-    "Ajio":     ["Ajio Label","Flying Machine","Peter England","Raymond","ColorPlus"],
+    "Amazon":   [
+        "H&M India", "Campus Sutra", "Bewakoof", "Roadster", "Urbanic",
+        "Symbol", "Allen Solly", "Levi's", "Van Heusen", "U.S. Polo Assn.",
+        "Max", "Global Desi", "Pepe Jeans", "Kraus Jeans", "Miss Chase",
+    ],
+    "Flipkart": [
+        "HRX by Hrithik", "Allen Solly", "Van Heusen", "Arrow", "Puma",
+        "Highlander", "Harvard", "Provogue", "Metronaut", "Veirdo",
+        "Urbano Fashion", "Tokyo Talkies", "Sassafras", "Ketch", "Dollar Missy",
+    ],
+    "Myntra":   [
+        "Roadster", "Tokyo Talkies", "DressBerry", "Athena", "HERE&NOW",
+        "SASSAFRAS", "Sangria", "Chemistry", "StyleCast", "KASSUALLY",
+        "Berrylush", "Mast & Harbour", "Moda Rapido", "Campus Sutra", "Anouk",
+    ],
+    "Ajio":     [
+        "Outryt", "Avaasa", "Netplay", "Teamspirit", "Indie Picks",
+        "Rio", "DNMX", "Project Eve", "Puma", "GAP",
+        "Superdry", "Stylum", "The Indian Garage Co", "Miss Chase", "Fig",
+    ],
 }
+
+# Known colors and fits for name-parsing
+_KNOWN_COLORS = [
+    "black", "white", "grey", "gray", "navy", "blue", "red", "green", "olive",
+    "beige", "cream", "ivory", "coral", "rust", "indigo", "charcoal", "sand",
+    "stone", "forest", "light blue", "denim", "pink", "yellow", "orange", "purple",
+]
+_KNOWN_FITS = [
+    "oversized", "slim fit", "regular fit", "relaxed fit", "skinny", "straight fit",
+    "wide leg", "tapered", "cropped", "athletic fit", "jogger", "boxy",
+]
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 def _query(product: dict) -> str:
@@ -43,6 +138,229 @@ def _parse_price(raw: str) -> float:
     try: return float(str(raw).replace("₹","").replace("\u20b9","").replace(",","").strip().split()[0])
     except: return 0.0
 
+# ── Name attribute parser ────────────────────────────────────────────────────
+def _parse_name_attributes(name: str) -> dict:
+    """Extract color, fit, and category hints from a free-form product name."""
+    name_lower = name.lower()
+    color = None
+    for c in _KNOWN_COLORS:
+        if c in name_lower:
+            color = c.title()
+            break
+    fit = None
+    for f in _KNOWN_FITS:
+        if f in name_lower:
+            fit = f.title()
+            break
+    return {"color": color, "fit": fit}
+
+# ── Tier 4: Static (product-name-aware) ──────────────────────────────────────
+def _tier4_static(product: dict, color_override: str | None = None, fit_override: str | None = None) -> list[dict]:
+    """Generate realistic static listings, biased to the product's color/fit."""
+    cat = product.get("category", "T-Shirts")
+    lo, hi = _RANGES.get(cat, (499, 2999))
+    templates = _TITLE_TEMPLATES.get(cat, _TITLE_TEMPLATES["T-Shirts"])
+
+    # Resolve color/fit: override > product attrs > parse from name
+    name_attrs = _parse_name_attributes(product.get("name", ""))
+    color = (color_override
+             or product.get("color")
+             or (product.get("specifications") or {}).get("color")
+             or name_attrs["color"]
+             or "Black")
+    fit   = (fit_override
+             or product.get("fit")
+             or (product.get("specifications") or {}).get("fit")
+             or name_attrs["fit"]
+             or "Regular")
+
+    # Clean fit label for title use (e.g. "Regular Fit" -> "Regular Fit")
+    fit_word = fit.split()[0] if fit else "Regular"
+
+    seed_key = product.get("id", product.get("name", "x"))
+    rng = random.Random(abs(hash(seed_key)))
+    results = []
+    for mp, merchants in _MP_MERCHANTS.items():
+        mp_merchants = list(merchants)
+        for idx in range(rng.randint(4, 6)):
+            m = mp_merchants[idx % len(mp_merchants)]
+            template = templates[idx % len(templates)]
+            t = template.format(color=color, fit=fit_word)
+            p = round(rng.uniform(lo, hi), -1)
+            op = round(p * rng.uniform(1.1, 1.5), -1)
+            results.append({
+                "marketplace": mp,
+                "title": f"{m} — {t}",
+                "price": float(p),
+                "original_price": float(op),
+                "discount": round((op - p) / op * 100),
+                "rating": round(rng.uniform(3.5, 4.8), 1),
+                "review_count": rng.randint(50, 8000),
+                "merchant": m,
+                "color": color,
+                "fit": fit,
+                "category": cat,
+                "link": "",
+                "_source_tier": 4,
+                "_source_badge": "⚪ SAMPLE DATA",
+            })
+    return results
+
+
+def scrape_by_name(
+    product_name: str,
+    category: str = "T-Shirts",
+    marketplaces: list[str] | None = None,
+    count: int = 30,
+    color: str | None = None,
+    fit: str | None = None,
+    anchor_price: float | None = None,
+) -> dict:
+    """
+    Build a rich competitor product list for a given product name / query.
+    Attempts live tiers (SerpApi) then falls back to static sample data.
+    Returns a dict ready to serialize as the /api/marketplace/search response.
+    """
+    if marketplaces is None:
+        marketplaces = list(_MP_MERCHANTS.keys())
+
+    # Normalise marketplace names to match _MP_MERCHANTS keys
+    _id_map = {"myntra": "Myntra", "ajio": "Ajio", "amazon": "Amazon", "flipkart": "Flipkart"}
+    mp_keys = [_id_map.get(m.lower(), m) for m in marketplaces]
+
+    # Parse attributes from name if not supplied
+    name_attrs = _parse_name_attributes(product_name)
+    resolved_color = (color or name_attrs["color"] or "Black").strip().title()
+    resolved_fit   = (fit   or name_attrs["fit"]   or "Regular").strip().title()
+    fit_word = resolved_fit.split()[0]
+
+    cat = category
+    lo, hi = _RANGES.get(cat, (499, 2999))
+    templates = _TITLE_TEMPLATES.get(cat, _TITLE_TEMPLATES["T-Shirts"])
+    fabrics = ["100% Cotton", "Linen Blend", "Viscose", "Rayon", "Cotton Lycra", "Modal", "Poly-Cotton"]
+    positions = ["Premium Segment", "Fast Fashion", "Heavy Discounting", "Bestseller",
+                 "Trend-Driven", "Minimalist Styling", "Occasion Wear", "Streetwear"]
+    fits_pool = ["Slim Fit", "Relaxed Fit", "Regular Fit", "Oversized",
+                 "Tailored", "Athletic fit", "Straight fit", "Wide leg"]
+    colors_pool = ["Coral", "Ivory", "Charcoal", "Indigo", "Olive", "Rust",
+                   "Black", "Sand", "Cream", "Stone", "Forest", "White",
+                   "Beige", "Green", "Navy", "Blue", "Grey"]
+    mp_offset = {"Myntra": 0, "Ajio": 3, "Amazon": 6, "Flipkart": 9}
+
+    results = []
+    per_mp = max(4, count // max(1, len(mp_keys)))
+
+    # Attempt Tier 1 (SerpApi) for live prices
+    source_badge = "⚪ SAMPLE DATA"
+    source = "static"
+    serp_key = os.getenv("SERPAPI_KEY", "").strip()
+    live_prices: dict[str, list[float]] = {}
+    if serp_key and not serp_key.startswith("your_"):
+        q = f"{resolved_color} {fit_word} {cat.rstrip('s')}"
+        url = (f"https://serpapi.com/search.json?engine=google_shopping"
+               f"&q={quote_plus(q)}&gl=in&hl=en&api_key={serp_key}")
+        try:
+            resp = httpx.get(url, timeout=15)
+            resp.raise_for_status()
+            for item in resp.json().get("shopping_results", []):
+                price = float(str(item.get("extracted_price") or 0).replace(",", ""))
+                mp_name = _merchant_to_mp(item.get("source", ""))
+                if price and mp_name in mp_keys:
+                    live_prices.setdefault(mp_name, []).append(price)
+            if live_prices:
+                source_badge = "🟢 LIVE — SerpApi"
+                source = "serpapi"
+        except Exception as e:
+            logger.warning("SerpApi search: %s", e)
+
+    for mp_name in mp_keys:
+        merchants = _MP_MERCHANTS.get(mp_name, [])
+        if not merchants:
+            continue
+        offset = mp_offset.get(mp_name, 0)
+        live_p_list = live_prices.get(mp_name, [])
+
+        # Pricing tilt per marketplace
+        mp_shift = {"Myntra": 0.05, "Ajio": 0.12, "Amazon": -0.15, "Flipkart": -0.20}.get(mp_name, 0)
+
+        similar_count = int(per_mp * 0.65)  # first 65% match the queried color/fit
+
+        for i in range(per_mp):
+            seed = abs(hash(f"{mp_name}-{cat}-{product_name}-{i}"))
+            rng_inst = random.Random(seed)
+
+            brand = merchants[i % len(merchants)]
+            similar_slot = i < similar_count
+
+            # Color/Fit: first N cards exactly match the query, rest diversify
+            card_color = resolved_color if similar_slot else colors_pool[seed % len(colors_pool)]
+            card_fit   = resolved_fit   if similar_slot else fits_pool[seed % len(fits_pool)]
+            card_fit_word = card_fit.split()[0]
+            fabric = fabrics[seed % len(fabrics)]
+            positioning = positions[seed % len(positions)]
+
+            template = templates[(i + offset) % len(templates)]
+            title_only = template.format(color=card_color, fit=card_fit_word)
+            full_title = f"{brand} — {title_only}"
+
+            # Price: use live data if available, else synthetic
+            if live_p_list:
+                base = live_p_list[i % len(live_p_list)]
+            elif anchor_price:
+                variance = ((seed % 80) - 40) / 100
+                base = max(299, round(anchor_price * (1 + variance + mp_shift)))
+            else:
+                base = round(rng_inst.uniform(lo, hi), -1)
+
+            mrp = round((base * 1.6) / 10) * 10
+            disc_pct = 15 + (seed % 60)
+            price = round((mrp * (100 - disc_pct) / 100) / 10) * 10
+
+            rating  = round(3.6 + (seed % 13) / 10, 1)
+            reviews = 80 + (seed % 5800)
+            bestseller  = (seed % 11) < 2
+            new_arrival = not bestseller and (seed % 9) < 2
+            sizes = [s for k, s in enumerate(["XS","S","M","L","XL","XXL"])
+                     if ((seed >> (k + 1)) & 1) == 1 or k <= 3]
+            delivery = ("Express, same city" if seed % 3 == 0
+                        else "Standard, 4\u20136 days")
+
+            results.append({
+                "id": f"{mp_name.lower()}-{cat}-{product_name}-{i}".lower().replace(" ", "-"),
+                "title": full_title,
+                "brand": brand,
+                "marketplace": mp_name.lower(),
+                "category": cat,
+                "color": card_color,
+                "fit": card_fit,
+                "fabric": fabric,
+                "mrp": mrp,
+                "price": price,
+                "discountPct": disc_pct,
+                "rating": rating,
+                "reviews": reviews,
+                "sizes": sizes,
+                "seller": f"{brand} Official Store",
+                "bestseller": bestseller,
+                "newArrival": new_arrival,
+                "positioning": positioning,
+                "delivery": delivery,
+                "image": "",  # Frontend fills from IMAGES_BY_ATTRIBUTES
+                "_source_tier": 4,
+                "_source_badge": source_badge,
+            })
+
+    return {
+        "query": product_name,
+        "color": resolved_color,
+        "fit": resolved_fit,
+        "category": cat,
+        "source": source,
+        "source_badge": source_badge,
+        "results": results,
+        "count": len(results),
+    }
+
 def _merchant_to_mp(m: str) -> str:
     m = m.lower()
     if "amazon" in m: return "Amazon"
@@ -51,22 +369,6 @@ def _merchant_to_mp(m: str) -> str:
     if "ajio" in m: return "Ajio"
     return "Google Shopping"
 
-# ── Tier 4: Static ────────────────────────────────────────────────────────────
-def _tier4_static(product: dict) -> list[dict]:
-    cat = product.get("category","T-Shirts")
-    lo, hi = _RANGES.get(cat,(499,2999))
-    titles = _TITLES.get(cat,_TITLES["T-Shirts"])
-    rng = random.Random(abs(hash(product.get("id","x"))))
-    results = []
-    for mp, merchants in _MP_MERCHANTS.items():
-        for _ in range(rng.randint(3,5)):
-            m = rng.choice(merchants); t = rng.choice(titles)
-            p = round(rng.uniform(lo,hi),-1); op = round(p*rng.uniform(1.1,1.4),-1)
-            results.append({"marketplace":mp,"title":f"{m} — {t}","price":float(p),
-                "original_price":float(op),"discount":round((op-p)/op*100),
-                "rating":round(rng.uniform(3.5,4.8),1),"review_count":rng.randint(50,8000),
-                "merchant":m,"link":"","_source_tier":4,"_source_badge":"⚪ SAMPLE DATA"})
-    return results
 
 # ── Tier 1: SerpApi ───────────────────────────────────────────────────────────
 def _tier1_serpapi_sync(product: dict) -> list[dict]:

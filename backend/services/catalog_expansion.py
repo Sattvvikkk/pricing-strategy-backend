@@ -52,16 +52,6 @@ UNSPLASH_BY_CATEGORY: Dict[str, List[str]] = {
         "1624378439575-d8705ad7ae80",
         "1593030761757-71fae45fa0e7",
     ],
-    "Dresses": [
-        "1572804013309-59a88b7e92f1",
-        "1539109136881-3be0616acf4b",
-        "1515886657613-9f3515b0c78f",
-        "1490481651871-ab68de25d43d",
-        "1502716119720-b23a93e5fe1b",
-        "1566174053879-31528523f8ae",
-        "1583496661160-fb5886a0aaaa",
-        "1596783074918-c84cb06531ca",
-    ],
     "Jackets": [
         "1551028719-00167b16eac5",
         "1591047139829-d91aecb6caea",
@@ -185,24 +175,6 @@ _TEMPLATES = [
         "cost_ratio": (0.34, 0.44),
         "sku_prefix": "VS-TRS",
         "sku_start": 1,
-    },
-    {
-        "category": "Dresses",
-        "names": [
-            "Smocked Tiered Midi", "Halter Slip Dress", "Pleated Skater Dress",
-            "Floral Wrap Maxi", "Rib-Knit Bodycon", "Oversized Shirt Dress",
-            "Linen Sundress", "Lace Trim Slip", "Empire Waist Mini",
-        ],
-        "fits": ["A-line", "Bodycon", "Bias cut", "Wrap", "Tiered"],
-        "materials": [
-            "Viscose Rayon", "Linen", "Satin Polyester", "Cotton Poplin",
-            "Rib Knit Cotton",
-        ],
-        "sizes": ["XS", "S", "M", "L", "XL"],
-        "price_range": (1799, 3999),
-        "cost_ratio": (0.32, 0.42),
-        "sku_prefix": "VS-DRS",
-        "sku_start": 100,
     },
     {
         "category": "Jackets",

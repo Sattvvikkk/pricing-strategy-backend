@@ -65,12 +65,16 @@ FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Startup: create tables, then seed data."""
-    init_db()
-    db = SessionLocal()
     try:
-        seed_database(db)
-    finally:
-        db.close()
+        init_db()
+        db = SessionLocal()
+        try:
+            seed_database(db)
+        finally:
+            db.close()
+    except Exception as e:
+        print(f"Error during database initialization: {e}")
+        # Continue startup even if seeding fails
     yield
 
 

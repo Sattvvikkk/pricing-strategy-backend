@@ -16,3 +16,4 @@ scipy~=1.13
 stripe==8.9.0
 groq==0.11.0
 serpapi==0.1.5
+

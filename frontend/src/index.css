@@ -17,17 +17,17 @@
   --border-strong: #8FA08F;
 
   /* Text */
-  --text-primary:   #0D1F18;
-  --text-secondary: #6B7B72;
-  --text-tertiary:  #9AA79F;
+  --text-primary:   #0A1F14;
+  --text-secondary: #2D4A3E;
+  --text-tertiary:  #4A6B5E;
 
-  /* Accent - mint lime */
-  --accent:         #CEED6F;
-  --accent-hover:   #BFE054;
-  --accent-ink:     #0D1F18;
-  --accent-subtle:  rgba(206, 237, 111, 0.22);
-  --accent-border:  rgba(206, 237, 111, 0.55);
-  --accent-glow:    rgba(206, 237, 111, 0.35);
+  /* Accent - dark forest green */
+  --accent:         #1A5D3A;
+  --accent-hover:   #157338;
+  --accent-ink:     #FFFFFF;
+  --accent-subtle:  rgba(26, 93, 58, 0.15);
+  --accent-border:  rgba(26, 93, 58, 0.35);
+  --accent-glow:    rgba(26, 93, 58, 0.25);
 
   /* Semantic */
   --success:         #22C55E;
@@ -6084,7 +6084,26 @@ h1, h2, h3, h4, h5, h6 { color: #0F172A !important; }
 .sim-slider, .pe-scenario__range { background: #E5E7EB !important; }
 
 /* Remove heavy shadows/glow on chart tooltip */
-.recharts-default-tooltip { background: #FFFFFF !important; border: 1px solid #E5E7EB !important; color: #0F172A !important; }
+.recharts-default-tooltip { background: #FFFFFF !important; border: 1px solid #D4DDD3 !important; color: #0A1F14 !important; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important; }
+.recharts-tooltip-wrapper { background: transparent !important; }
+.recharts-tooltip-item { color: #0A1F14 !important; }
+.recharts-tooltip-item-name { color: #2D4A3E !important; font-weight: 600 !important; }
+.recharts-tooltip-item-value { color: #0A1F14 !important; font-weight: 700 !important; }
+.recharts-tooltip-item-separator { display: none !important; }
+.recharts-tooltip-cursor { stroke: #1A5D3A !important; }
+
+/* Recharts bar colors for light theme */
+.recharts-bar-rectangle { fill: #1A5D3A !important; }
+.recharts-bar { fill: #1A5D3A !important; }
+.recharts-rectangle { fill: #1A5D3A !important; }
+.recharts-area { fill: rgba(26, 93, 58, 0.2) !important; stroke: #1A5D3A !important; }
+.recharts-line { stroke: #1A5D3A !important; stroke-width: 2 !important; }
+.recharts-cartesian-axis-tick-value { fill: #0A1F14 !important; font-size: 11px !important; font-weight: 500 !important; }
+.recharts-cartesian-axis-tick-text { fill: #0A1F14 !important; font-size: 11px !important; font-weight: 500 !important; }
+.recharts-cartesian-axis-line { stroke: #D4DDD3 !important; }
+.recharts-cartesian-grid { stroke: #E6EDE5 !important; stroke-dasharray: 3 3 !important; }
+.recharts-legend-item-text { fill: #0A1F14 !important; font-size: 12px !important; font-weight: 600 !important; }
+.recharts-text { fill: #0A1F14 !important; }
 
 /* Minimal card shadow system */
 .ip-panel, .sim-metric-card, .lif, .auto-rule, .set-card, .sc.card { box-shadow: 0 1px 3px rgba(15,23,42,0.05) !important; }

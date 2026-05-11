@@ -5,23 +5,17 @@ from services.catalog_expansion import EXTRA_CATALOGUE, attach_image
 # Unsplash photo IDs per product for high-quality individual images
 _IMG = {
     # T-Shirts
-    "VS-TS-BLK-OS": "1521572163474-6864f9cf17ab",
-    "VS-TS-WHT-RG": "1583743814966-8936f5b7be1a",
-    "VS-TS-BGE-VT": "1618354691373-d851c5c3a990",
-    "VS-TS-GRN-GR": "1576566588028-4147f3842f27",
-    "VS-TS-NVY-AT": "1581655353564-df123a1eb820",
+    "VS-TS-BLK-OS": "1618677366787-9727d8aa4cab",  # Oversized black tee
+    "VS-TS-WHT-RG": "1521572163474-6864f9cf17ab",  # Classic white crew
+    "VS-TS-BGE-VT": "1553979459-d2229ba7433b",      # Vintage washed beige
+    "VS-TS-GRN-GR": "1618355776464-8666794d2520",  # Graphic green street
+    "VS-TS-NVY-AT": "1581655353564-df123a1eb820",  # Athletic fit navy
     # Jeans
     "VS-JN-BLU-SK": "1542272604-787c3835535d",
     "VS-JN-BLK-ST": "1541099649105-f69ad21f3246",
     "VS-JN-LBL-WD": "1604176354204-9268737828e4",
     "VS-JN-GRY-CR": "1582552938357-32b906df40cb",
     "VS-JN-IND-RL": "1565084888279-aca607ecce0c",
-    # Dresses
-    "VS-DR-CRL-WR": "1572804013309-59a88b7e92f1",
-    "VS-DR-BLK-MD": "1539109136881-3be0616acf4b",
-    "VS-DR-PNK-SL": "1515886657613-9f3515b0c78f",
-    "VS-DR-WHT-SM": "1566174053879-31528523f8ae",
-    "VS-DR-BLU-BD": "1596783074918-c84cb06531ca",
     # Jackets
     "VS-JK-BLK-BM": "1551028719-00167b16eac5",
     "VS-JK-OLV-UT": "1591047139829-d91aecb6caea",
@@ -54,16 +48,70 @@ _IMG = {
     "VS-AW-PNK-YG": "1506629082955-511b1aa562c8",
 }
 
+# Per-SKU local image override (relative to frontend `public/`).
+# Files live at `frontend/public/products/<filename>` so Vite serves them
+# directly. Add a new entry here as soon as a real product photo is dropped
+# into that folder.
+_LOCAL_IMG = {
+    # T-Shirts
+    "VS-TS-BLK-OS": "/products/VS-TS-BLK-OS.webp",
+    "VS-TS-WHT-RG": "/products/VS-TS-WHT-RG.jpg",
+    "VS-TS-BGE-VT": "/products/VS-TS-BGE-VT.webp",
+    "VS-TS-GRN-GR": "/products/VS-TS-GRN-GR.webp",
+    "VS-TS-NVY-AT": "/products/VS-TS-NVY-AT.webp",
+    # Jeans
+    "VS-JN-BLU-SK": "/products/VS-JN-BLU-SK.webp",
+    "VS-JN-BLK-ST": "/products/VS-JN-BLK-ST.webp",
+    "VS-JN-LBL-WD": "/products/VS-JN-LBL-WD.webp",
+    "VS-JN-GRY-CR": "/products/VS-JN-GRY-CR.webp",
+    "VS-JN-IND-RL": "/products/VS-JN-IND-RL.webp",
+    # Jackets
+    "VS-JK-BLK-BM": "/products/VS-JK-BLK-BM.webp",
+    "VS-JK-OLV-UT": "/products/VS-JK-OLV-UT.webp",
+    "VS-JK-DNM-TR": "/products/VS-JK-DNM-TR.webp",
+    "VS-JK-CRM-PF": "/products/VS-JK-CRM-PF.webp",
+    "VS-JK-GRY-ST": "/products/VS-JK-GRY-ST.webp",
+    # Shirts
+    "VS-SH-WHT-LN": "/products/VS-SH-WHT-LN.webp",
+    "VS-SH-BLU-ST": "/products/VS-SH-BLU-ST.webp",
+    "VS-SH-BLK-ST": "/products/VS-SH-BLK-ST.webp",
+    "VS-SH-GRN-RS": "/products/VS-SH-GRN-RS.webp",
+    "VS-SH-BGE-OV": "/products/VS-SH-BGE-OV.webp",
+    # Trousers
+    "VS-TR-BLK-CR": "/products/VS-TR-BLK-CR.webp",
+    "VS-TR-BGE-WL": "/products/VS-TR-BGE-WL.webp",
+    "VS-TR-GRY-PL": "/products/VS-TR-GRY-PL.webp",
+    "VS-TR-OLV-JG": "/products/VS-TR-OLV-JG.webp",
+    "VS-TR-NVY-SM": "/products/VS-TR-NVY-SM.webp",
+    # Sweatshirts
+    "VS-SW-GRY-OS": "/products/VS-SW-GRY-OS.webp",
+    "VS-SW-BLK-MN": "/products/VS-SW-BLK-MN.webp",
+    "VS-SW-CRM-VN": "/products/VS-SW-CRM-VN.webp",
+    "VS-SW-GRN-HD": "/products/VS-SW-GRN-HD.jpg",
+    "VS-SW-NVY-ZP": "/products/VS-SW-NVY-ZP.webp",
+    # Activewear
+    "VS-AW-BLK-CP": "/products/VS-AW-BLK-CP.jpg",
+    "VS-AW-GRY-JG": "/products/VS-AW-GRY-JG.webp",
+    "VS-AW-BLU-RN": "/products/VS-AW-BLU-RN.jpg",
+    "VS-AW-OLV-TK": "/products/VS-AW-OLV-TK.jpg",
+    "VS-AW-PNK-YG": "/products/VS-AW-PNK-YG.jpg",
+}
+
+
 def _img(sku):
+    if sku in _LOCAL_IMG:
+        return _LOCAL_IMG[sku]
     pid = _IMG.get(sku, "1521572163474-6864f9cf17ab")
     return f"https://images.unsplash.com/photo-{pid}?auto=format&fit=crop&q=80&w=600"
 
 def _p(id, name, sku, cat, price, cost, color, fit, material, desc, sizes, stock, rating, reviews, **extra_specs):
     specs = {"fit": fit, "material": material, "color": color}
     specs.update(extra_specs)
+    # Calculate landing_cost as cost + 3-8% overhead
+    landing_cost = round(cost + cost * 0.05, 2)
     return {
         "id": id, "name": name, "brand": "Vouge Studio", "price": price,
-        "cost_price": cost, "currency": "INR", "category": cat, "sku": sku,
+        "cost_price": cost, "landing_cost": landing_cost, "currency": "INR", "category": cat, "sku": sku,
         "search_query": f"{color.lower()} {name.lower()}",
         "description": desc, "specifications": specs,
         "sizes": sizes, "stock": stock, "rating": rating, "reviews": reviews,
@@ -124,28 +172,6 @@ _all = [
        2399, 860, "Indigo", "Relaxed fit", "100% Cotton Denim",
        "Easy relaxed-fit jeans in raw indigo. Unwashed selvedge-edge details for the denim purist.",
        _SZ_JN, 520, 4.4, 198, rise="Mid rise", wash="Raw indigo", weight="14 oz"),
-
-    # ── DRESSES ──
-    _p("vs-dr-crl-wr", "Floral Wrap Dress – Coral", "VS-DR-CRL-WR", "Dresses",
-       2999, 1050, "Coral", "Wrap / A-line", "Viscose Rayon",
-       "Flowing wrap dress in vibrant coral floral print. Smocked waist and puff sleeves for brunch to evening.",
-       _SZ_DR, 400, 4.6, 267, length="Midi", sleeve="Puff sleeve", closure="Wrap tie"),
-    _p("vs-dr-blk-md", "Minimal Midi Dress – Black", "VS-DR-BLK-MD", "Dresses",
-       2499, 880, "Black", "Fitted waist / A-line", "Cotton Poplin",
-       "Sleek minimal midi in structured cotton poplin. Clean lines, invisible back zip, timeless elegance.",
-       _SZ_DR, 600, 4.5, 312, length="Midi", sleeve="Sleeveless", closure="Back zip"),
-    _p("vs-dr-pnk-sl", "Satin Slip Dress – Pink", "VS-DR-PNK-SL", "Dresses",
-       3499, 1250, "Pink", "Bias cut", "Satin (Polyester)",
-       "Luxe satin slip with cowl neckline and cross-back straps. The ultimate evening statement.",
-       _SZ_DR, 280, 4.7, 289, length="Midi", sleeve="Spaghetti straps", closure="Side zip"),
-    _p("vs-dr-wht-sm", "Summer Tiered Dress – White", "VS-DR-WHT-SM", "Dresses",
-       2299, 800, "White", "Tiered / Relaxed", "100% Linen",
-       "Breezy tiered linen dress in crisp white. Three tiers, adjustable straps, vacation-ready.",
-       _SZ_DR, 350, 4.4, 198, length="Maxi", sleeve="Adjustable straps", closure="Pull-on"),
-    _p("vs-dr-blu-bd", "Bodycon Evening Dress – Blue", "VS-DR-BLU-BD", "Dresses",
-       2799, 980, "Blue", "Bodycon", "Stretch Knit",
-       "Figure-hugging bodycon in midnight blue stretch knit. Off-shoulder neckline for evening drama.",
-       _SZ_DR, 320, 4.3, 156, length="Mini", sleeve="Off-shoulder", closure="Pull-on"),
 
     # ── JACKETS ──
     _p("vs-jk-blk-bm", "Bomber Jacket – Black", "VS-JK-BLK-BM", "Jackets",
@@ -263,12 +289,8 @@ for p in _all:
 
 
 def _full_catalogue() -> dict:
-    """Curated 40 SKUs + ~100 generated SKUs, with images attached."""
-    merged = dict(DEFAULT_PRODUCTS)
-    for pid, p in EXTRA_CATALOGUE.items():
-        if pid not in merged:
-            merged[pid] = p
-    return merged
+    """Return ONLY the 35 curated Vouge Studio SKUs (no auto-generated extras)."""
+    return dict(DEFAULT_PRODUCTS)
 
 
 _CATALOGUE = _full_catalogue()

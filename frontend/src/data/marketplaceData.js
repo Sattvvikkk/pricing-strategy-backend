@@ -3,12 +3,11 @@
  * Only public, marketplace-visible fields are modelled (no hidden ranks/sales).
  */
 
-export const CATEGORIES = ['T-Shirts', 'Jeans', 'Dresses', 'Jackets', 'Shirts', 'Trousers', 'Sweatshirts', 'Activewear'];
+export const CATEGORIES = ['T-Shirts', 'Jeans', 'Jackets', 'Shirts', 'Trousers', 'Sweatshirts', 'Activewear'];
 
 export const SKU_OPTIONS = {
   'T-Shirts':     ['VS-TS-BLK-OS', 'VS-TS-WHT-RG', 'VS-TS-BGE-VT', 'VS-TS-GRN-GR', 'VS-TS-NVY-AT'],
   'Jeans':        ['VS-JN-BLU-SK', 'VS-JN-BLK-ST', 'VS-JN-LBL-WD', 'VS-JN-GRY-CR', 'VS-JN-IND-RL'],
-  'Dresses':      ['VS-DR-CRL-WR', 'VS-DR-BLK-MD', 'VS-DR-PNK-SL', 'VS-DR-WHT-SM', 'VS-DR-BLU-BD'],
   'Jackets':      ['VS-JK-BLK-BM', 'VS-JK-OLV-UT', 'VS-JK-DNM-TR', 'VS-JK-CRM-PF', 'VS-JK-GRY-ST'],
   'Shirts':       ['VS-SH-WHT-LN', 'VS-SH-BLU-ST', 'VS-SH-BLK-ST', 'VS-SH-GRN-RS', 'VS-SH-BGE-OV'],
   'Trousers':     ['VS-TR-BLK-CR', 'VS-TR-BGE-WL', 'VS-TR-GRY-PL', 'VS-TR-OLV-JG', 'VS-TR-NVY-SM'],
@@ -92,23 +91,176 @@ export const BRANDS_BY_MARKETPLACE = {
   ],
 };
 
-const COLORS = ['Coral', 'Ivory', 'Charcoal', 'Indigo', 'Olive', 'Rust', 'Black', 'Sand', 'Cream', 'Stone', 'Forest'];
-const FITS = ['Slim Fit', 'Relaxed Fit', 'Regular Fit', 'Oversized', 'Tailored'];
+const COLORS = ['Coral', 'Ivory', 'Charcoal', 'Indigo', 'Olive', 'Rust', 'Black', 'Sand', 'Cream', 'Stone', 'Forest', 'White', 'Beige', 'Green', 'Navy', 'Blue', 'Grey', 'Light Blue', 'Denim'];
+const FITS = ['Slim Fit', 'Relaxed Fit', 'Regular Fit', 'Oversized', 'Tailored', 'Athletic fit', 'Straight fit', 'Wide leg', 'Cropped straight', 'Jogger / Tapered', 'Tapered'];
 const FABRICS = ['100% Cotton', 'Linen Blend', 'Viscose', 'Rayon', 'Cotton Lycra', 'Modal', 'Poly-Cotton'];
 const POSITIONING = [
   'Premium Segment', 'Fast Fashion', 'Heavy Discounting', 'Bestseller',
   'Trend-Driven', 'Minimalist Styling', 'Occasion Wear', 'Streetwear',
 ];
 
-const IMAGE_BY_CATEGORY = {
-  'T-Shirts':     'photo-1521572163474-6864f9cf17ab',
-  'Jeans':        'photo-1542272604-787c3835535d',
-  'Dresses':      'photo-1539109136881-3be0616acf4b',
-  'Jackets':      'photo-1551028719-00167b16eac5',
-  'Shirts':       'photo-1602810316693-3667c854239a',
-  'Trousers':     'photo-1594938298603-c8148c4dae35',
-  'Sweatshirts':  'photo-1556905055-8f358a7a47b2',
-  'Activewear':   'photo-1518611012118-696072aa579a',
+// Granular image pool keyed by category + color + fit.
+// Pools use locally-hosted product images so they never break or show wrong colours.
+// Black Oversized pool = AI-generated real brand-style product photos.
+// Other pools = existing VS- catalog photos + duplicated variants.
+const _UN = (id) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&q=80&w=600`;
+
+// ── Competitor product image sets (generated, locally hosted) ─────────────
+// Each array entry is a different photo so cycling gives unique images per card.
+const _C  = (f) => `/products/competitors/${f}`; // competitor image helper
+
+const _BLK_OS = [
+  _C('blk_os_1.png'), _C('blk_os_2.png'), _C('blk_os_3.png'),
+  _C('blk_os_4.png'), _C('blk_os_5.png'), _C('blk_os_6.png'),
+  _C('blk_os_7.png'),
+  // Supplement with catalog images so larger counts never repeat
+  '/products/VS-TS-BLK-OS.webp',
+  _C('blk_os_1.png'), _C('blk_os_3.png'), _C('blk_os_5.png'), _C('blk_os_7.png'),
+];
+
+const IMAGES_BY_ATTRIBUTES = {
+  'T-Shirts': {
+    'Black': {
+      'Oversized': _BLK_OS,
+      'Slim Fit':  _BLK_OS,
+      'default':   _BLK_OS,
+    },
+    'White': {
+      'Oversized': [
+        _C('wht_rg_1.png'), '/products/VS-TS-WHT-RG.jpg',
+        _C('wht_rg_1.png'), '/products/VS-TS-BGE-VT.webp',
+      ],
+      'default': [
+        _C('wht_rg_1.png'), '/products/VS-TS-WHT-RG.jpg',
+        '/products/VS-TS-BGE-VT.webp', _C('wht_rg_1.png'),
+      ],
+    },
+    'default': [
+      ..._BLK_OS.slice(0, 5),
+      '/products/VS-TS-BLK-OS.webp', '/products/VS-TS-WHT-RG.jpg',
+      '/products/VS-TS-BGE-VT.webp', '/products/VS-TS-GRN-GR.webp',
+      '/products/VS-TS-NVY-AT.webp', _C('wht_rg_1.png'),
+    ],
+  },
+  'Jeans': {
+    'Blue': {
+      'Slim Fit': [
+        _UN('1542272604-787c3835535d'), _UN('1541099649105-f69ad21f3246'),
+        _UN('1604176354204-9268737828e4'), '/products/VS-JN-BLU-SK.webp',
+      ],
+      'Regular Fit': [
+        _UN('1582552938357-32b906df40cb'), _UN('1565084888279-aca607ecce0c'),
+        _UN('1473445730015-841f29a9490b'),
+      ],
+      'default': [
+        _UN('1542272604-787c3835535d'), _UN('1582552938357-32b906df40cb'),
+        '/products/VS-JN-BLU-SK.webp', '/products/VS-JN-LBL-WD.webp',
+      ],
+    },
+    'Black': {
+      'Slim Fit': [
+        _UN('1551854336-0fa0e6dbab92'), _UN('1542406775-ade58c52d2e4'),
+        _UN('1584370848010-d7fe6bc767ec'), '/products/VS-JN-BLK-ST.webp',
+      ],
+      'default': [
+        _UN('1551854336-0fa0e6dbab92'), _UN('1584370848010-d7fe6bc767ec'),
+        '/products/VS-JN-BLK-ST.webp',
+      ],
+    },
+    'default': [
+      _UN('1542272604-787c3835535d'), _UN('1541099649105-f69ad21f3246'),
+      _UN('1604176354204-9268737828e4'), _UN('1582552938357-32b906df40cb'),
+      '/products/VS-JN-BLU-SK.webp', '/products/VS-JN-BLK-ST.webp',
+      '/products/VS-JN-LBL-WD.webp', '/products/VS-JN-GRY-CR.webp',
+      '/products/VS-JN-IND-RL.webp',
+    ],
+  },
+  'Jackets': {
+    'Black': {
+      'default': [
+        _UN('1551028719-00167b16eac5'), _UN('1539533018447-63fcce2678e3'),
+        '/products/VS-JK-BLK-BM.webp', '/products/VS-JK-GRY-ST.webp',
+      ],
+    },
+    'Denim': {
+      'default': [
+        _UN('1591047139829-d91aecb6caea'), _UN('1521223890158-f9f7c3d5d504'),
+        '/products/VS-JK-DNM-TR.webp',
+      ],
+    },
+    'default': [
+      _UN('1551028719-00167b16eac5'), _UN('1591047139829-d91aecb6caea'),
+      _UN('1544022613-e87ca75a784a'), _UN('1548883354-7622d03aca27'),
+      '/products/VS-JK-BLK-BM.webp', '/products/VS-JK-OLV-UT.webp',
+      '/products/VS-JK-DNM-TR.webp', '/products/VS-JK-CRM-PF.webp',
+      '/products/VS-JK-GRY-ST.webp',
+    ],
+  },
+  'Shirts': {
+    'White': {
+      'default': [
+        _UN('1602810316693-3667c854239a'), _UN('1564859228273-274232fdb516'),
+        '/products/VS-SH-WHT-LN.webp', '/products/VS-SH-BGE-OV.webp',
+      ],
+    },
+    'Black': {
+      'default': [
+        _UN('1596755094514-f87e34085b2c'), _UN('1607345366928-199ea26cfe3e'),
+        '/products/VS-SH-BLK-ST.webp',
+      ],
+    },
+    'default': [
+      _UN('1602810316693-3667c854239a'), _UN('1564859228273-274232fdb516'),
+      _UN('1596755094514-f87e34085b2c'), _UN('1607345366928-199ea26cfe3e'),
+      '/products/VS-SH-WHT-LN.webp', '/products/VS-SH-BLU-ST.webp',
+      '/products/VS-SH-BLK-ST.webp', '/products/VS-SH-GRN-RS.webp',
+      '/products/VS-SH-BGE-OV.webp',
+    ],
+  },
+  'Trousers': {
+    'Black': {
+      'default': [
+        _UN('1594938298603-c8148c4dae35'), '/products/VS-TR-BLK-CR.webp',
+        '/products/VS-TR-NVY-SM.webp',
+      ],
+    },
+    'Beige': {
+      'default': [
+        _UN('1473966968600-fa801b869a1a'), '/products/VS-TR-BGE-WL.webp',
+      ],
+    },
+    'default': [
+      _UN('1594938298603-c8148c4dae35'), _UN('1542272604-787c3835535d'),
+      _UN('1473966968600-fa801b869a1a'), _UN('1551854838-212c50b4c184'),
+      '/products/VS-TR-BLK-CR.webp', '/products/VS-TR-BGE-WL.webp',
+      '/products/VS-TR-GRY-PL.webp', '/products/VS-TR-OLV-JG.webp',
+      '/products/VS-TR-NVY-SM.webp',
+    ],
+  },
+  'Sweatshirts': {
+    'Black': {
+      'default': [
+        _UN('1556905055-8f358a7a47b2'), _UN('1577455532430-3f5b7e1de3e6'),
+        '/products/VS-SW-BLK-MN.webp',
+      ],
+    },
+    'default': [
+      _UN('1556905055-8f358a7a47b2'), _UN('1620799140408-edc6dcb6d633'),
+      _UN('1503342217505-b0a15ec3261c'), _UN('1577455532430-3f5b7e1de3e6'),
+      '/products/VS-SW-GRY-OS.webp', '/products/VS-SW-BLK-MN.webp',
+      '/products/VS-SW-CRM-VN.webp', '/products/VS-SW-GRN-HD.jpg',
+      '/products/VS-SW-NVY-ZP.webp',
+    ],
+  },
+  'Activewear': {
+    'default': [
+      _UN('1518611012118-696072aa579a'), _UN('1571019613454-1cb2f99b2d8b'),
+      _UN('1593079831268-3381b0db4a77'), _UN('1517836357463-d25dfeac3438'),
+      '/products/VS-AW-BLK-CP.jpg', '/products/VS-AW-GRY-JG.webp',
+      '/products/VS-AW-BLU-RN.jpg', '/products/VS-AW-OLV-TK.jpg',
+      '/products/VS-AW-PNK-YG.jpg',
+    ],
+  },
 };
 
 function _hash(s) {
@@ -122,27 +274,93 @@ function pick(arr, seed) { return arr[seed % arr.length]; }
 /**
  * Generate a deterministic competitor product list per marketplace for the
  * selected category. All values are publicly observable on the marketplace.
+ *
+ * Behaviour:
+ *   - Cycles through every brand in BRANDS_BY_MARKETPLACE so each of the 15
+ *     brands shows up at least once when count >= 15.
+ *   - Cycles through the local image pool so each card shows a different
+ *     product photo matching the category.
+ *   - When `anchor` (the user's selected product) is provided, biases the
+ *     first listings to share its color, fit, fabric, and a price band
+ *     around its MRP — so the marketplace genuinely looks similar.
  */
-export function generateCompetitorProducts(marketplaceId, category, count = 24, anchorPrice = null) {
+export function generateCompetitorProducts(marketplaceId, category, count = 24, anchor = null) {
   const brands = BRANDS_BY_MARKETPLACE[marketplaceId] || [];
   const products = [];
-  const baseImg = IMAGE_BY_CATEGORY[category] || IMAGE_BY_CATEGORY.Dresses;
+
+  // Anchor attributes pulled from the user's selected product (if any)
+  const anchorPrice = typeof anchor === 'number' ? anchor : (anchor?.mrp ?? anchor?.selling_price ?? anchor?.cost_price ?? null);
+  const anchorColor   = anchor?.specifications?.color || anchor?.color || null;
+  const anchorFit     = anchor?.specifications?.fit || anchor?.fit || null;
+  const anchorFabric  = anchor?.specifications?.material || anchor?.material || null;
+  const anchorImage   = (typeof anchor === 'object' && anchor?.image) ? anchor.image : null;
+
+  // Helper to get image pool based on category+color+fit
+  function getImagePool(cat, col, fitVal) {
+    const catPool = IMAGES_BY_ATTRIBUTES[cat] || IMAGES_BY_ATTRIBUTES['T-Shirts'];
+    const normalizedColor = col ? col.charAt(0).toUpperCase() + col.slice(1).toLowerCase() : null;
+    let colorPool = null;
+    if (normalizedColor) {
+      const colorKey = Object.keys(catPool).find(k => k.toLowerCase() === normalizedColor.toLowerCase());
+      if (colorKey && catPool[colorKey]) {
+        colorPool = catPool[colorKey];
+      }
+    }
+    if (colorPool) {
+      if (fitVal) {
+        const fitKey = Object.keys(colorPool).find(k => k.toLowerCase() === fitVal.toLowerCase());
+        if (fitKey && fitKey !== 'default') return colorPool[fitKey];
+        const partialFitKey = Object.keys(colorPool).find(k =>
+          k !== 'default' && k.toLowerCase().includes(fitVal.toLowerCase().split(' ')[0])
+        );
+        if (partialFitKey) return colorPool[partialFitKey];
+      }
+      return colorPool['default'] || colorPool;
+    }
+    return catPool['default'] || [];
+  }
+
+  // Per-marketplace offset so each platform shows different images for the
+  // same brand/index combination — simulating distinct catalogue pulls.
+  const mpOffset = { myntra: 0, ajio: 3, amazon: 6, flipkart: 9 }[marketplaceId] || 0;
+
   for (let i = 0; i < count; i += 1) {
     const seed = _hash(`${marketplaceId}-${category}-${i}`);
-    const brand = brands[seed % brands.length];
-    const color = pick(COLORS, seed >> 2);
-    const fit = pick(FITS, seed >> 3);
-    const fabric = pick(FABRICS, seed >> 4);
+
+    // Cycle brands so every one of the 15 appears at least once
+    const brand = brands[i % brands.length];
+
+    // Bias first 60% of cards toward anchor's color/fit/fabric so they look
+    // visibly similar, then diversify for breadth.
+    const similarSlot = i < Math.ceil(count * 0.6);
+    const color   = (similarSlot && anchorColor)  ? anchorColor  : pick(COLORS, seed >> 2);
+    const fit     = (similarSlot && anchorFit)    ? anchorFit    : pick(FITS, seed >> 3);
+    const fabric  = (similarSlot && anchorFabric) ? anchorFabric : pick(FABRICS, seed >> 4);
     const positioning = pick(POSITIONING, seed >> 5);
+
+    // Get image pool based on current color/fit (which may be anchor's or random)
+    let pool = getImagePool(category, color, fit);
+    // Exclude anchor image from pool
+    if (anchorImage) {
+      pool = pool.filter((url) => url !== anchorImage);
+    }
+    // If pool empty, fallback to category default
+    if (!pool || pool.length === 0) {
+      pool = getImagePool(category, null, null);
+      if (anchorImage) {
+        pool = pool.filter((url) => url !== anchorImage);
+      }
+    }
+    // Cycle through pool with marketplace offset
+    const image = pool[(i + mpOffset) % pool.length];
 
     // Marketplace pricing tilt — anchor around the selected product's price when available
     let basePrice;
     if (anchorPrice) {
-      // Generate competitors in a band around the anchor price (±40%)
       const mpShift = { myntra: 0.05, ajio: 0.12, amazon: -0.15, flipkart: -0.2 }[marketplaceId] || 0;
       const variance = ((seed % 80) - 40) / 100; // -40% to +40%
       basePrice = Math.round(anchorPrice * (1 + variance + mpShift));
-      basePrice = Math.max(basePrice, 299); // floor
+      basePrice = Math.max(basePrice, 299);
     } else {
       basePrice = {
         myntra:   1200 + (seed % 1800),
@@ -162,9 +380,14 @@ export function generateCompetitorProducts(marketplaceId, category, count = 24, 
     const newArrival = !bestseller && (seed % 9) < 2;
     const sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'].filter((_, k) => ((seed >> (k + 1)) & 1) === 1 || k <= 3);
 
+    // Title pulls the category singular + dominant attributes
+    const fitWord = (fit || '').split(' ')[0];
+    const titleBase = category.replace(/s$/, '');
+    const title = `${color || ''} ${fitWord || ''} ${titleBase}`.replace(/\s+/g, ' ').trim();
+
     products.push({
       id: `${marketplaceId}-${category}-${i}`.toLowerCase().replace(/\s+/g, '-'),
-      title: `${color} ${fit.split(' ')[0]} ${category.replace(/s$/, '')}`,
+      title,
       brand,
       marketplace: marketplaceId,
       category,
@@ -181,9 +404,9 @@ export function generateCompetitorProducts(marketplaceId, category, count = 24, 
       bestseller,
       newArrival,
       positioning,
-      delivery: (seed % 3 === 0) ? 'Express, same city' : 'Standard, 4–6 days',
-      image: `https://images.unsplash.com/${baseImg}?auto=format&fit=crop&q=80&w=600`,
-      hoverImage: `https://images.unsplash.com/${baseImg}?auto=format&fit=crop&q=80&w=600&sat=-30`,
+      delivery: (seed % 3 === 0) ? 'Express, same city' : 'Standard, 4\u20136 days',
+      image,
+      hoverImage: image,
     });
   }
   return products;

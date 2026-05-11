@@ -32,97 +32,102 @@ PLATFORM_CONFIG = {
 
 def seed_database(db: Session) -> None:
     """Seed products, sales history, and competitor data. Idempotent."""
-    existing = db.query(SalesHistory).first()
-    if existing:
-        print("Seeder: Data already exists — skipping.")
-        return
+    try:
+        existing = db.query(SalesHistory).first()
+        if existing:
+            print("Seeder: Data already exists — skipping.")
+            return
 
-    # ── 1. Seed Products ──────────────────────────────────────────────────────
-    for pid, pdata in DEFAULT_PRODUCTS.items():
-        product = Product(
-            id=pid,
-            name=pdata["name"],
-            brand=pdata["brand"],
-            category=pdata["category"],
-            current_price=pdata["price"],
-            cost_price=pdata["cost_price"],
-        )
-        db.merge(product)      # merge handles re-runs safely
+        # ── 1. Seed Products ──────────────────────────────────────────────────────
+        for pid, pdata in DEFAULT_PRODUCTS.items():
+            product = Product(
+                id=pid,
+                name=pdata["name"],
+                brand=pdata["brand"],
+                category=pdata["category"],
+                current_price=pdata["price"],
+                cost_price=pdata["cost_price"],
+            )
+            db.merge(product)      # merge handles re-runs safely
 
-    db.flush()
+        db.flush()
 
-    today = date.today()
-    random.seed(42)            # reproducible
+        today = date.today()
+        random.seed(42)            # reproducible
 
-    # ── 2. Generate 90-day sales history per product ──────────────────────────
-    history_records = []
+        # ── 2. Generate 90-day sales history per product ──────────────────────────
+        history_records = []
 
-    for pid, pdata in DEFAULT_PRODUCTS.items():
-        base_price = pdata["price"]
-        base_demand = max(5, int(3500 / base_price * 8))
+        for pid, pdata in DEFAULT_PRODUCTS.items():
+            base_price = pdata["price"]
+            base_demand = max(5, int(3500 / base_price * 8))
 
-        for day_offset in range(HISTORY_DAYS):
-            record_date = today - timedelta(days=HISTORY_DAYS - 1 - day_offset)
-            dow = record_date.weekday()          # 0=Mon … 6=Sun
+            for day_offset in range(HISTORY_DAYS):
+                record_date = today - timedelta(days=HISTORY_DAYS - 1 - day_offset)
+                dow = record_date.weekday()          # 0=Mon … 6=Sun
 
-            demand = base_demand
+                demand = base_demand
 
-            # Day-of-week multiplier
-            demand *= DOW_MULTIPLIERS[dow]
+                # Day-of-week multiplier
+                demand *= DOW_MULTIPLIERS[dow]
 
-            # Random noise (0.85 – 1.15)
-            demand *= random.uniform(0.85, 1.15)
+                # Random noise (0.85 – 1.15)
+                demand *= random.uniform(0.85, 1.15)
 
-            # Seasonal trend — last 30 days get a slight upward ramp (1.0 → 1.15)
-            if day_offset >= (HISTORY_DAYS - 30):
-                ramp_position = (day_offset - (HISTORY_DAYS - 30)) / 29   # 0.0 → 1.0
-                demand *= 1.0 + 0.15 * ramp_position
+                # Seasonal trend — last 30 days get a slight upward ramp (1.0 → 1.15)
+                if day_offset >= (HISTORY_DAYS - 30):
+                    ramp_position = (day_offset - (HISTORY_DAYS - 30)) / 29   # 0.0 → 1.0
+                    demand *= 1.0 + 0.15 * ramp_position
 
-            # Occasional sale spikes — 5 % of days get 1.5x – 2.0x
-            if random.random() < 0.05:
-                demand *= random.uniform(1.5, 2.0)
+                # Occasional sale spikes — 5 % of days get 1.5x – 2.0x
+                if random.random() < 0.05:
+                    demand *= random.uniform(1.5, 2.0)
 
-            units_sold = max(1, int(round(demand)))
+                units_sold = max(1, int(round(demand)))
 
-            # Price with ±3 % daily noise
-            day_price = round(base_price * random.uniform(0.97, 1.03), 2)
-            revenue = round(day_price * units_sold, 2)
+                # Price with ±3 % daily noise
+                day_price = round(base_price * random.uniform(0.97, 1.03), 2)
+                revenue = round(day_price * units_sold, 2)
 
-            history_records.append(SalesHistory(
-                product_id=pid,
-                date=record_date,
-                price=day_price,
-                units_sold=units_sold,
-                revenue=revenue,
-                day_of_week=dow,
-            ))
-
-    db.bulk_save_objects(history_records)
-
-    # ── 3. Generate competitor data per product ───────────────────────────────
-    comp_records = []
-    # Scrape 30 distinct dates spread across the 90-day window
-    sample_dates = [today - timedelta(days=d) for d in range(0, 90, 3)]  # 30 dates
-
-    for pid, pdata in DEFAULT_PRODUCTS.items():
-        base_price = pdata["price"]
-
-        for rec_date in sample_dates:
-            for platform, brands in PLATFORM_CONFIG.items():
-                brand_name, lo_mult, hi_mult = random.choice(brands)
-                comp_price = round(base_price * random.uniform(lo_mult, hi_mult), 2)
-
-                comp_records.append(CompetitorData(
+                history_records.append(SalesHistory(
                     product_id=pid,
-                    platform=platform,
-                    price=comp_price,
-                    title=f"{brand_name} similar product",
-                    merchant=brand_name,
-                    link=None,
+                    date=record_date,
+                    price=day_price,
+                    units_sold=units_sold,
+                    revenue=revenue,
+                    day_of_week=dow,
                 ))
 
-    db.bulk_save_objects(comp_records)
-    db.commit()
-    print(f"Seeder: {len(DEFAULT_PRODUCTS)} products, "
-          f"{len(history_records)} sales records, "
-          f"{len(comp_records)} competitor records.")
+        db.bulk_save_objects(history_records)
+
+        # ── 3. Generate competitor data per product ───────────────────────────────
+        comp_records = []
+        # Scrape 30 distinct dates spread across the 90-day window
+        sample_dates = [today - timedelta(days=d) for d in range(0, 90, 3)]  # 30 dates
+
+        for pid, pdata in DEFAULT_PRODUCTS.items():
+            base_price = pdata["price"]
+
+            for rec_date in sample_dates:
+                for platform, brands in PLATFORM_CONFIG.items():
+                    brand_name, lo_mult, hi_mult = random.choice(brands)
+                    comp_price = round(base_price * random.uniform(lo_mult, hi_mult), 2)
+
+                    comp_records.append(CompetitorData(
+                        product_id=pid,
+                        platform=platform,
+                        price=comp_price,
+                        title=f"{brand_name} similar product",
+                        merchant=brand_name,
+                        link=None,
+                    ))
+
+        db.bulk_save_objects(comp_records)
+        db.commit()
+        print(f"Seeder: {len(DEFAULT_PRODUCTS)} products, "
+              f"{len(history_records)} sales records, "
+              f"{len(comp_records)} competitor records.")
+    except Exception as e:
+        print(f"Error during database seeding: {e}")
+        db.rollback()
+        raise

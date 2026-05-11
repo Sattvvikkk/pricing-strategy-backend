@@ -31,8 +31,8 @@ export default function Analytics() {
     boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
     fontSize: '0.82rem',
   };
-  const axisStyle = { stroke: '#CBD5E1', fontSize: 11 };
-  const gridStyle = { strokeDasharray: '3 3', stroke: 'rgba(0,0,0,0.05)' };
+  const axisStyle = { stroke: '#D4DDD3', fontSize: 11, fill: '#0A1F14' };
+  const gridStyle = { strokeDasharray: '3 3', stroke: '#E6EDE5' };
   const accentColor = '#6366f1';
 
   if (loading) return (

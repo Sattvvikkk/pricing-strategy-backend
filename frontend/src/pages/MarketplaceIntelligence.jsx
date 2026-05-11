@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -15,6 +15,7 @@ import {
   BRANDS_BY_MARKETPLACE
 } from '../data/marketplaceData';
 import { useProduct } from '../context/ProductContext';
+import { useBuiltMarketplaces } from '../context/BuiltMarketplacesContext';
 import '../styles/marketplace-intelligence.css';
 
 const EASE = [0.16, 1, 0.3, 1];
@@ -119,7 +120,7 @@ function ProductDrawer({ isOpen, onClose, category, products, onSelectProduct, s
                 <div className="mi-product-grid">
                   {products.map((product) => {
                     const skuLabel = product.sku || product.id;
-                    const price = product.mrp ?? product.selling_price ?? product.cost_price;
+                    const price = product.landing_cost ?? product.mrp ?? product.selling_price ?? product.cost_price;
                     const isSelected = selectedProduct?.id === product.id;
                     return (
                       <button
@@ -296,7 +297,7 @@ function SetupScreen({ config, setConfig, onBuild }) {
                         <div className="mi-product-selector__title">{selectedProduct.name}</div>
                         <div className="mi-product-selector__sku">{selectedProduct.sku || selectedProduct.id}</div>
                         {selectedProduct.mrp ? (
-                          <div className="mi-product-selector__price">₹{selectedProduct.mrp}</div>
+                          <div className="mi-product-selector__price">₹{selectedProduct.landing_cost ?? selectedProduct.mrp}</div>
                         ) : null}
                       </div>
                     </>
@@ -882,7 +883,7 @@ function MarketplaceOverview({ summaries, config }) {
   );
 }
 
-function CompetitorCatalogue({ products, marketplaces, onOpen }) {
+function CompetitorCatalogue({ products, marketplaces, onOpen, loading }) {
   const [filter, setFilter] = useState('all');
   const [brandFilter, setBrandFilter] = useState('all');
   const filtered = useMemo(() => {
@@ -895,8 +896,9 @@ function CompetitorCatalogue({ products, marketplaces, onOpen }) {
 
   const brandsForFilter = useMemo(() => {
     if (filter === 'all') return [];
-    return BRANDS_BY_MARKETPLACE[filter] || [];
-  }, [filter]);
+    const brandsInProducts = [...new Set(products.filter(p => p.marketplace === filter).map(p => p.brand))];
+    return brandsInProducts.sort();
+  }, [filter, products]);
 
   return (
     <div className="mi-cat">
@@ -932,7 +934,7 @@ function CompetitorCatalogue({ products, marketplaces, onOpen }) {
             >
               All
             </button>
-            {brandsForFilter.slice(0, 12).map((b) => (
+            {brandsForFilter.map((b) => (
               <button
                 key={b}
                 type="button"
@@ -947,53 +949,73 @@ function CompetitorCatalogue({ products, marketplaces, onOpen }) {
       </div>
 
       <div className="mi-cat__count">
-        {filtered.length} listings {filter !== 'all' ? `on ${marketplaces.find((m) => m.id === filter)?.name}` : 'across selected marketplaces'}
+        {loading ? (
+          <span style={{ color: 'var(--mi-muted, #a8a89e)' }}>Fetching live competitor data…</span>
+        ) : (
+          <>{filtered.length} listings {filter !== 'all' ? `on ${marketplaces.find((m) => m.id === filter)?.name}` : 'across selected marketplaces'}</>
+        )}
       </div>
 
-      <div className="mi-cat__grid">
-        {filtered.map((p, i) => {
-          const mp = marketplaces.find((m) => m.id === p.marketplace);
-          return (
-            <motion.button
-              type="button"
-              key={p.id}
-              className="mi-card"
-              onClick={() => onOpen(p)}
-              style={{ '--accent': mp?.accent || '#ceed6f' }}
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.45, delay: Math.min(i * 0.02, 0.4), ease: EASE }}
-              whileHover={{ y: -4 }}
-            >
-              <div className="mi-card__media">
-                <img src={p.image} alt={p.title} loading="lazy" />
-                <div className="mi-card__badges">
-                  {p.bestseller ? <span className="mi-badge mi-badge--best">Bestseller</span> : null}
-                  {p.newArrival ? <span className="mi-badge mi-badge--new">New Arrival</span> : null}
-                </div>
-                <div className="mi-card__mp">{mp?.name}</div>
-              </div>
+      {loading ? (
+        <div className="mi-cat__grid">
+          {Array.from({ length: 12 }).map((_, i) => (
+            <div key={i} className="mi-card mi-card--skeleton" style={{ '--accent': '#333' }}>
+              <div className="mi-card__media" style={{ background: 'rgba(255,255,255,0.05)', borderRadius: 8 }} />
               <div className="mi-card__body">
-                <div className="mi-card__brand">{p.brand}</div>
-                <div className="mi-card__title">{p.title}</div>
-                <div className="mi-card__price">
-                  <strong>{'\u20B9'}{p.price.toLocaleString('en-IN')}</strong>
-                  <span className="mi-card__mrp">{'\u20B9'}{p.mrp.toLocaleString('en-IN')}</span>
-                  <span className="mi-card__off">{p.discountPct}% off</span>
-                </div>
-                <div className="mi-card__meta">
-                  <span><Star size={11} /> {p.rating}</span>
-                  <span>{p.reviews.toLocaleString('en-IN')} reviews</span>
-                </div>
-                <div className="mi-card__pos">{p.positioning}</div>
+                <div style={{ height: 10, width: '40%', background: 'rgba(255,255,255,0.08)', borderRadius: 4, marginBottom: 6 }} />
+                <div style={{ height: 14, width: '80%', background: 'rgba(255,255,255,0.10)', borderRadius: 4, marginBottom: 10 }} />
+                <div style={{ height: 18, width: '55%', background: 'rgba(255,255,255,0.12)', borderRadius: 4 }} />
               </div>
-            </motion.button>
-          );
-        })}
-      </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="mi-cat__grid">
+          {filtered.map((p, i) => {
+            const mp = marketplaces.find((m) => m.id === p.marketplace);
+            return (
+              <motion.button
+                type="button"
+                key={p.id}
+                className="mi-card"
+                onClick={() => onOpen(p)}
+                style={{ '--accent': mp?.accent || '#ceed6f' }}
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.45, delay: Math.min(i * 0.02, 0.4), ease: EASE }}
+                whileHover={{ y: -4 }}
+              >
+                <div className="mi-card__media">
+                  <img src={p.image} alt={p.title} loading="lazy" />
+                  <div className="mi-card__badges">
+                    {p.bestseller ? <span className="mi-badge mi-badge--best">Bestseller</span> : null}
+                    {p.newArrival ? <span className="mi-badge mi-badge--new">New Arrival</span> : null}
+                  </div>
+                  <div className="mi-card__mp">{mp?.name}</div>
+                </div>
+                <div className="mi-card__body">
+                  <div className="mi-card__brand">{p.brand}</div>
+                  <div className="mi-card__title">{p.title}</div>
+                  <div className="mi-card__price">
+                    <strong>{'\u20B9'}{p.price.toLocaleString('en-IN')}</strong>
+                    <span className="mi-card__mrp">{'\u20B9'}{p.mrp.toLocaleString('en-IN')}</span>
+                    <span className="mi-card__off">{p.discountPct}% off</span>
+                  </div>
+                  <div className="mi-card__meta">
+                    <span><Star size={11} /> {p.rating}</span>
+                    <span>{p.reviews.toLocaleString('en-IN')} reviews</span>
+                  </div>
+                  <div className="mi-card__pos">{p.positioning}</div>
+                </div>
+              </motion.button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
+
 
 function PricingLandscape({ products, marketplaces }) {
   const data = useMemo(() => {
@@ -1024,12 +1046,12 @@ function PricingLandscape({ products, marketplaces }) {
         </div>
         <ResponsiveContainer width="100%" height={260}>
           <BarChart data={data} margin={{ top: 12, right: 12, left: 0, bottom: 0 }}>
-            <CartesianGrid stroke="rgba(255,255,255,0.06)" strokeDasharray="3 3" vertical={false} />
-            <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#a8a89e' }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fontSize: 11, fill: '#a8a89e' }} axisLine={false} tickLine={false} />
+            <CartesianGrid stroke="#E6EDE5" strokeDasharray="3 3" vertical={false} />
+            <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#0A1F14' }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fontSize: 11, fill: '#0A1F14' }} axisLine={false} tickLine={false} />
             <Tooltip
-              contentStyle={{ background: '#15151a', border: '1px solid #2a2a30', borderRadius: 8, fontSize: 12, color: '#e9e9e3' }}
-              cursor={{ fill: 'rgba(255,255,255,0.04)' }}
+              contentStyle={{ background: '#FFFFFF', border: '1px solid #D4DDD3', borderRadius: 8, fontSize: 12, color: '#0A1F14' }}
+              cursor={{ fill: 'rgba(26, 93, 58, 0.1)' }}
               formatter={(v, k) => [`\u20B9${v.toLocaleString('en-IN')}`, k]}
             />
             <Bar dataKey="min" name="Min">
@@ -1055,30 +1077,17 @@ function PricingLandscape({ products, marketplaces }) {
         </div>
         <ResponsiveContainer width="100%" height={300}>
           <ScatterChart margin={{ top: 12, right: 16, bottom: 4, left: 0 }}>
-            <CartesianGrid stroke="rgba(255,255,255,0.06)" strokeDasharray="3 3" />
+            <CartesianGrid stroke="#E6EDE5" strokeDasharray="3 3" />
             <XAxis dataKey="price" type="number" name="Price"
-              tick={{ fontSize: 10, fill: '#a8a89e' }} axisLine={false} tickLine={false}
-              label={{ value: 'Price (₹)', fontSize: 10, fill: '#7a7a72', position: 'insideBottom', offset: -2 }}
-            />
+              tick={{ fontSize: 10, fill: '#0A1F14' }}
+              label={{ value: 'Price (₹)', fontSize: 10, fill: '#2D4A3E', position: 'insideBottom', offset: -2 }} />
             <YAxis dataKey="rating" type="number" name="Rating" domain={[3.5, 5]}
-              tick={{ fontSize: 10, fill: '#a8a89e' }} axisLine={false} tickLine={false}
-            />
-            <ZAxis dataKey="reviews" range={[40, 320]} />
+              tick={{ fontSize: 10, fill: '#0A1F14' }}
+              label={{ value: 'Rating', fontSize: 10, fill: '#2D4A3E', angle: -90, position: 'insideLeft' }} />
             <Tooltip
-              cursor={{ strokeDasharray: '3 3' }}
-              content={({ active, payload }) => {
-                if (!active || !payload?.length) return null;
-                const p = payload[0].payload;
-                return (
-                  <div style={{ background: '#15151a', border: '1px solid #2a2a30', borderRadius: 8, padding: '10px 12px', fontSize: 12, color: '#e9e9e3', minWidth: 180 }}>
-                    <div style={{ fontWeight: 600, marginBottom: 4 }}>{p.brand}</div>
-                    <div style={{ color: '#a8a89e', marginBottom: 6 }}>{p.title}</div>
-                    <div>Price: ₹{p.price.toLocaleString('en-IN')}</div>
-                    <div>Rating: {p.rating} ({p.reviews})</div>
-                  </div>
-                );
-              }}
-            />
+              contentStyle={{ background: '#FFFFFF', border: '1px solid #D4DDD3', borderRadius: 8, fontSize: 12, color: '#0A1F14' }}
+              cursor={{ strokeDasharray: '3 3', fill: 'rgba(26, 93, 58, 0.1)' }}
+              formatter={(v, n) => [n === 'price' ? `₹${v.toLocaleString('en-IN')}` : v, n]} />
             <Scatter data={scatter}>
               {scatter.map((s) => <Cell key={s.id} fill={s.fill} />)}
             </Scatter>
@@ -1287,7 +1296,7 @@ function ProductDetailDrawer({ product, marketplaces, onClose }) {
             <span style={{ background: mp?.accent }} /> {mp?.name}
           </div>
           <div className="mi-drawer__price">
-            <strong>{'\u20B9'}{product.price.toLocaleString('en-IN')}</strong>
+            <strong>{'\u20B9'}{product.landing_cost?.toLocaleString('en-IN') ?? product.price?.toLocaleString('en-IN')}</strong>
             <span className="mi-drawer__mrp">{'\u20B9'}{product.mrp.toLocaleString('en-IN')}</span>
             <span className="mi-drawer__off">{product.discountPct}% off</span>
           </div>
@@ -1320,7 +1329,7 @@ function ProductDetailDrawer({ product, marketplaces, onClose }) {
   );
 }
 
-function MarketplaceView({ config, products, marketplaces, summaries, onReset }) {
+function MarketplaceView({ config, products, marketplaces, summaries, scraperMeta, loadingProducts, onReset }) {
   const [tab, setTab] = useState('overview');
   const [openProduct, setOpenProduct] = useState(null);
 
@@ -1337,6 +1346,16 @@ function MarketplaceView({ config, products, marketplaces, summaries, onReset })
             Marketplace built for{' '}
             <strong>{config.product?.name || config.sku}</strong>
             {config.product?.mrp ? ` — ₹${config.product.mrp}` : ''}
+            {scraperMeta?.source_badge && (
+              <span style={{ marginLeft: 10, fontSize: 11, opacity: 0.7, fontWeight: 400 }}>
+                {scraperMeta.source_badge}
+              </span>
+            )}
+            {scraperMeta?.color && (
+              <span style={{ marginLeft: 6, fontSize: 11, opacity: 0.6 }}>
+                · Searching: {scraperMeta.color}{scraperMeta.fit ? ` ${scraperMeta.fit}` : ''}
+              </span>
+            )}
           </div>
           <h2 className="mi-view__title">{config.category} {'\u00B7'} {marketplaces.length} marketplaces</h2>
         </div>
@@ -1369,7 +1388,7 @@ function MarketplaceView({ config, products, marketplaces, summaries, onReset })
             transition={{ duration: 0.35, ease: EASE }}
           >
             {tab === 'overview' && <MarketplaceOverview summaries={summaries} config={config} />}
-            {tab === 'catalogue' && <CompetitorCatalogue products={products} marketplaces={marketplaces} onOpen={setOpenProduct} />}
+            {tab === 'catalogue' && <CompetitorCatalogue products={products} marketplaces={marketplaces} onOpen={setOpenProduct} loading={loadingProducts} />}
             {tab === 'pricing' && <PricingLandscape products={products} marketplaces={marketplaces} />}
             {tab === 'trends' && <CategoryTrends products={products} marketplaces={marketplaces} />}
             {tab === 'positioning' && <PositioningAnalysis products={products} marketplaces={marketplaces} />}
@@ -1386,30 +1405,121 @@ function MarketplaceView({ config, products, marketplaces, summaries, onReset })
 // ---- Page entry ------------------------------------------------------------
 export default function MarketplaceIntelligence() {
   const [config, setConfig] = useState({
-    category: 'Dresses',
-    sku: SKU_OPTIONS.Dresses[0],
+    category: 'T-Shirts',
+    sku: SKU_OPTIONS['T-Shirts'][0],
     marketplaces: ['myntra', 'ajio', 'amazon', 'flipkart'],
     scanDepth: 'standard',
     similarity: 'aesthetic',
   });
   const [phase, setPhase] = useState('setup'); // setup | building | view
+  const [products, setProducts] = useState([]);
+  const [scraperMeta, setScraperMeta] = useState(null); // { source_badge, query, color, fit }
+  const [loadingProducts, setLoadingProducts] = useState(false);
+  const { saveBuild } = useBuiltMarketplaces();
 
   const selectedMps = useMemo(
     () => MARKETPLACES.filter((m) => config.marketplaces.includes(m.id)),
     [config.marketplaces],
   );
 
-  const products = useMemo(() => {
-    if (phase !== 'view') return [];
-    const countByDepth = { quick: 14, standard: 24, deep: 38 };
-    const count = countByDepth[config.scanDepth] || 24;
-    const all = [];
-    const anchorPrice = config.product?.mrp || config.product?.selling_price || null;
-    for (const mp of selectedMps) {
-      all.push(...generateCompetitorProducts(mp.id, config.category, count, anchorPrice));
+  // ---- Fetch products from backend scraper when entering 'view' ----
+  const fetchProducts = useCallback(async () => {
+    if (phase !== 'view') return;
+    setLoadingProducts(true);
+
+    const countByDepth = { quick: 18, standard: 30, deep: 45 };
+    const count = countByDepth[config.scanDepth] || 30;
+    const product = config.product;
+
+    // Build query from product name; extract color/fit from specifications or name
+    const productName = product?.name || config.category;
+    const color = product?.specifications?.color
+      || product?.color
+      || null;
+    const fit = product?.specifications?.fit
+      || product?.fit
+      || null;
+    const anchorPrice = product?.landing_cost ?? product?.mrp ?? product?.selling_price ?? product?.cost_price ?? null;
+
+    const params = new URLSearchParams({
+      q: productName,
+      category: config.category,
+      marketplaces: config.marketplaces.join(','),
+      count: String(count),
+      ...(color ? { color } : {}),
+      ...(fit ? { fit } : {}),
+      ...(anchorPrice ? { anchor_price: String(anchorPrice) } : {}),
+    });
+
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL || '';
+      const res = await fetch(`${baseUrl}/api/marketplace/search?${params}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+
+      if (data.results && data.results.length > 0) {
+          // Group scraped products by marketplace so we can generate images
+          // in BULK per marketplace. This ensures each card (index 0, 1, 2…)
+          // gets a DIFFERENT image from the colour-matched pool rather than
+          // every card reusing index-0 (the previous bug).
+          const byMp = {};
+          data.results.forEach((p) => {
+            if (!byMp[p.marketplace]) byMp[p.marketplace] = [];
+            byMp[p.marketplace].push(p);
+          });
+
+          const enriched = [];
+          Object.entries(byMp).forEach(([mpId, mpProducts]) => {
+            // Generate exactly as many images as there are products in this mp
+            const generated = generateCompetitorProducts(
+              mpId, config.category, mpProducts.length, product
+            );
+            mpProducts.forEach((p, i) => {
+              enriched.push({
+                ...p,
+                image: generated[i]?.image || generated[0]?.image || '',
+                hoverImage: generated[Math.min(i + 1, generated.length - 1)]?.image
+                          || generated[0]?.image || '',
+              });
+            });
+          });
+
+          setProducts(enriched);
+
+        setScraperMeta({
+          source_badge: data.source_badge,
+          query: data.query,
+          color: data.color,
+          fit: data.fit,
+        });
+      } else {
+        // API returned empty — fallback to local generator
+        const fallback = selectedMps.flatMap((mp) =>
+          generateCompetitorProducts(mp.id, config.category, count, product)
+        );
+        setProducts(fallback);
+        setScraperMeta({ source_badge: '⚪ Generated', query: productName });
+      }
+    } catch (err) {
+      console.warn('[MarketplaceIntelligence] API error, using local fallback:', err);
+      const fallback = selectedMps.flatMap((mp) =>
+        generateCompetitorProducts(mp.id, config.category, count, product)
+      );
+      setProducts(fallback);
+      setScraperMeta({ source_badge: '⚪ Generated', query: productName });
+    } finally {
+      setLoadingProducts(false);
     }
-    return all;
-  }, [phase, selectedMps, config.scanDepth, config.category, config.product]);
+  }, [phase, config, selectedMps]);
+
+  useEffect(() => {
+    if (phase === 'view') {
+      fetchProducts();
+    } else {
+      setProducts([]);
+      setScraperMeta(null);
+    }
+  }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const summaries = useMemo(() => {
     return selectedMps.map((mp) => ({
@@ -1417,6 +1527,40 @@ export default function MarketplaceIntelligence() {
       summary: marketplaceSummary(mp.id, products.filter((p) => p.marketplace === mp.id)),
     })).filter((s) => s.summary);
   }, [selectedMps, products]);
+
+  // Persist the build so StrategyBuilder can show only scanned products
+  useEffect(() => {
+    if (phase === 'view' && config.product?.id && products.length > 0 && !loadingProducts) {
+      saveBuild({
+        product: {
+          id: config.product.id,
+          name: config.product.name,
+          sku: config.product.sku || config.sku,
+          category: config.category,
+          image: config.product.image,
+          mrp: config.product.mrp,
+          price: config.product.price ?? config.product.selling_price,
+          cost_price: config.product.cost_price,
+          specifications: config.product.specifications || {},
+          stock: config.product.stock,
+        },
+        marketplaces: config.marketplaces,
+        scanDepth: config.scanDepth,
+        similarity: config.similarity,
+        scraperMeta,
+        summaries: summaries.map((s) => ({ mpId: s.mp.id, mpName: s.mp.name, ...s.summary })),
+        competitorCount: products.length,
+        avgCompetitorPrice: Math.round(
+          products.reduce((a, p) => a + (p.price || 0), 0) / Math.max(products.length, 1)
+        ),
+        priceRange: {
+          min: Math.min(...products.map((p) => p.price || 0)),
+          max: Math.max(...products.map((p) => p.price || 0)),
+        },
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, products.length, loadingProducts]);
 
   return (
     <div className="mi-page">
@@ -1439,6 +1583,8 @@ export default function MarketplaceIntelligence() {
             products={products}
             marketplaces={selectedMps}
             summaries={summaries}
+            scraperMeta={scraperMeta}
+            loadingProducts={loadingProducts}
             onReset={() => setPhase('setup')}
           />
         )}

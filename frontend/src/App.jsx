@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 import { AuthProvider } from './context/AuthContext';
 import { ProductProvider } from './context/ProductContext';
+import { BuiltMarketplacesProvider } from './context/BuiltMarketplacesContext';
 
 import ProtectedRoute from './components/ProtectedRoute';
 import ScrollToTop from './components/ScrollToTop';
@@ -43,6 +44,7 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <ProductProvider>
+          <BuiltMarketplacesProvider>
           <ScrollToTop />
           <Routes>
             {/* ── Landing page with Enter button ──────────────────── */}
@@ -72,6 +74,7 @@ export default function App() {
             {/* ── Fallback ──────────────────────────────────────── */}
             <Route path="*" element={<Navigate to="/app" replace />} />
           </Routes>
+          </BuiltMarketplacesProvider>
         </ProductProvider>
       </AuthProvider>
     </BrowserRouter>

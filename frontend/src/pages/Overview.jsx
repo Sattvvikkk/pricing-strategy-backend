@@ -501,8 +501,8 @@ function ProductDrawer({ product, abcClass, onClose, onOpenWorkbench }) {
                     <ResponsiveContainer width="100%" height={140}>
                       <BarChart data={weekly} margin={{ top: 8, right: 4, left: 0, bottom: 0 }}>
                         <CartesianGrid stroke="#ece9e2" strokeDasharray="3 3" vertical={false} />
-                        <XAxis dataKey="week" tick={{ fontSize: 10, fill: '#8a8a82' }} axisLine={false} tickLine={false} />
-                        <YAxis tick={{ fontSize: 10, fill: '#8a8a82' }} axisLine={false} tickLine={false} allowDecimals={false} width={28} />
+                        <XAxis dataKey="week" tick={{ fontSize: 10, fill: '#0A1F14' }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fontSize: 10, fill: '#0A1F14' }} axisLine={false} tickLine={false} allowDecimals={false} width={28} />
                         <Tooltip contentStyle={CHART_TOOLTIP_STYLE} formatter={(v) => [`${v} units`, 'Sold']} cursor={{ fill: 'rgba(26,58,46,0.05)' }} />
                         <Bar dataKey="units" fill="#1a3a2e" radius={[4, 4, 0, 0]} />
                       </BarChart>
@@ -1125,7 +1125,7 @@ export default function Overview() {
                     <stop offset="100%" stopColor="#1a3a2e" stopOpacity={0.02} />
                   </linearGradient>
                 </defs>
-                <XAxis dataKey="day" tick={{ fontSize: 10, fill: '#8a8a82' }} axisLine={false} tickLine={false} interval={5} />
+                <XAxis dataKey="day" tick={{ fontSize: 10, fill: '#0A1F14' }} axisLine={false} tickLine={false} interval={5} />
                 <Tooltip
                   contentStyle={CHART_TOOLTIP_STYLE}
                   formatter={(v) => [rupee(v), 'Revenue']}
@@ -1221,9 +1221,9 @@ export default function Overview() {
             <ResponsiveContainer width="100%" height={280}>
               <ComposedChart data={paretoData} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
                 <CartesianGrid stroke="#ece9e2" strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="rank" tick={{ fontSize: 10, fill: '#8a8a82' }} axisLine={false} tickLine={false} />
-                <YAxis yAxisId="rev" tick={{ fontSize: 11, fill: '#6b6b62' }} axisLine={false} tickLine={false} />
-                <YAxis yAxisId="pct" orientation="right" domain={[0, 100]} tick={{ fontSize: 11, fill: '#6b6b62' }} axisLine={false} tickLine={false} unit="%" />
+                <XAxis dataKey="rank" tick={{ fontSize: 10, fill: '#0A1F14' }} axisLine={false} tickLine={false} />
+                <YAxis yAxisId="rev" tick={{ fontSize: 11, fill: '#0A1F14' }} axisLine={false} tickLine={false} />
+                <YAxis yAxisId="pct" orientation="right" domain={[0, 100]} tick={{ fontSize: 11, fill: '#0A1F14' }} axisLine={false} tickLine={false} unit="%" />
                 <Tooltip
                   contentStyle={CHART_TOOLTIP_STYLE}
                   labelFormatter={(rank, payload) => payload?.[0]?.payload?.name || `Rank ${rank}`}
@@ -1247,8 +1247,8 @@ export default function Overview() {
               <ResponsiveContainer width="100%" height={240}>
                 <BarChart data={stockAge} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
                   <CartesianGrid stroke="#ece9e2" strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#6b6b62' }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 11, fill: '#6b6b62' }} axisLine={false} tickLine={false} allowDecimals={false} />
+                  <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#0A1F14' }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 11, fill: '#0A1F14' }} axisLine={false} tickLine={false} allowDecimals={false} />
                   <Tooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={{ fill: 'rgba(26,58,46,0.05)' }} formatter={(v, key, ctx) => key === 'count' ? [`${v} SKUs`, 'Count'] : [`\u20B9${v}k`, 'Stock value']} />
                   <Bar dataKey="count" fill="#1a3a2e" radius={[4, 4, 0, 0]} />
                 </BarChart>
@@ -1270,18 +1270,18 @@ export default function Overview() {
                     dataKey="margin"
                     name="Margin"
                     domain={['dataMin - 5', 'dataMax + 5']}
-                    tick={{ fontSize: 10, fill: '#6b6b62' }}
+                    tick={{ fontSize: 10, fill: '#0A1F14' }}
                     axisLine={false} tickLine={false}
-                    label={{ value: 'Avg Margin %', position: 'insideBottom', offset: -2, fontSize: 10, fill: '#8a8a82' }}
+                    label={{ value: 'Avg Margin %', position: 'insideBottom', offset: -2, fontSize: 10, fill: '#2D4A3E' }}
                   />
                   <YAxis
                     type="number"
                     dataKey="sellThru"
                     name="Sell-through"
                     domain={['dataMin - 5', 'dataMax + 5']}
-                    tick={{ fontSize: 10, fill: '#6b6b62' }}
+                    tick={{ fontSize: 10, fill: '#0A1F14' }}
                     axisLine={false} tickLine={false}
-                    label={{ value: 'Sell-through %', angle: -90, position: 'insideLeft', offset: 10, fontSize: 10, fill: '#8a8a82' }}
+                    label={{ value: 'Sell-through %', angle: -90, position: 'insideLeft', offset: 10, fontSize: 10, fill: '#2D4A3E' }}
                   />
                   <ZAxis type="number" dataKey="value" range={[100, 900]} />
                   <Tooltip
@@ -1343,10 +1343,10 @@ export default function Overview() {
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={stockHealthByCat} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
                 <CartesianGrid stroke="#ece9e2" strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#6b6b62' }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: '#6b6b62' }} axisLine={false} tickLine={false} allowDecimals={false} />
+                <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#0A1F14' }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: '#0A1F14' }} axisLine={false} tickLine={false} allowDecimals={false} />
                 <Tooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={{ fill: 'rgba(26,58,46,0.05)' }} />
-                <Legend wrapperStyle={{ fontSize: 11, color: '#6b6b62' }} iconType="circle" />
+                <Legend wrapperStyle={{ fontSize: 11, color: '#0A1F14' }} iconType="circle" />
                 <Bar dataKey="healthy" stackId="a" fill="#1f6b46" name="Healthy" radius={[0, 0, 0, 0]} />
                 <Bar dataKey="low" stackId="a" fill="#b45309" name="Restock" />
                 <Bar dataKey="over" stackId="a" fill="#9ca3af" name="Overstocked" radius={[4, 4, 0, 0]} />
@@ -1496,8 +1496,8 @@ export default function Overview() {
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={inventoryByCat} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
                 <CartesianGrid stroke="#ece9e2" strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="category" tick={{ fontSize: 11, fill: '#6b6b62' }} axisLine={false} tickLine={false} interval={0} angle={-18} textAnchor="end" height={50} />
-                <YAxis tick={{ fontSize: 11, fill: '#6b6b62' }} axisLine={false} tickLine={false} />
+                <XAxis dataKey="category" tick={{ fontSize: 11, fill: '#0A1F14' }} axisLine={false} tickLine={false} interval={0} angle={-18} textAnchor="end" height={50} />
+                <YAxis tick={{ fontSize: 11, fill: '#0A1F14' }} axisLine={false} tickLine={false} />
                 <Tooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={{ fill: 'rgba(26,58,46,0.05)' }} />
                 <Bar dataKey="value" fill="#1a3a2e" radius={[6, 6, 0, 0]} />
               </BarChart>
@@ -1518,8 +1518,8 @@ export default function Overview() {
                   </linearGradient>
                 </defs>
                 <CartesianGrid stroke="#ece9e2" strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="day" tick={{ fontSize: 10, fill: '#6b6b62' }} axisLine={false} tickLine={false} interval={4} />
-                <YAxis tick={{ fontSize: 11, fill: '#6b6b62' }} axisLine={false} tickLine={false} />
+                <XAxis dataKey="day" tick={{ fontSize: 10, fill: '#0A1F14' }} axisLine={false} tickLine={false} interval={4} />
+                <YAxis tick={{ fontSize: 11, fill: '#0A1F14' }} axisLine={false} tickLine={false} />
                 <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
                 <Area type="monotone" dataKey="units" stroke="#1a3a2e" strokeWidth={2} fill="url(#sellGrad)" />
               </AreaChart>
@@ -1534,8 +1534,8 @@ export default function Overview() {
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={marginHist} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
                 <CartesianGrid stroke="#ece9e2" strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#6b6b62' }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: '#6b6b62' }} axisLine={false} tickLine={false} allowDecimals={false} />
+                <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#0A1F14' }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: '#0A1F14' }} axisLine={false} tickLine={false} allowDecimals={false} />
                 <Tooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={{ fill: 'rgba(107,74,138,0.05)' }} />
                 <Bar dataKey="count" fill="#6b4a8a" radius={[6, 6, 0, 0]} />
               </BarChart>

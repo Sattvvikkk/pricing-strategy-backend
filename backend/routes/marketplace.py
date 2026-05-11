@@ -1,5 +1,6 @@
 """Marketplace API routes.
 
+GET /api/marketplace/search               — search by product name across marketplaces
 GET /api/marketplace/{product_id}         — aggregated competitor data for a product
 GET /api/marketplace/{product_id}/prices  — flat list of competitor prices
 GET /api/marketplace/{product_id}/comparison — per-marketplace comparison stats
@@ -8,20 +9,51 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timedelta
-from typing import List
+from typing import List, Optional
 
 import numpy as np
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from database import get_db
 from models import CompetitorData
 from services.product_catalog import get_product_by_id
-from services.scraper_engine import get_competitor_prices_sync
+from services.scraper_engine import get_competitor_prices_sync, scrape_by_name
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/marketplace", tags=["Marketplace"])
+
+
+# ── GET /search ───────────────────────────────────────────────────────────────
+
+@router.get("/search")
+def search_marketplace(
+    q: str = Query(..., description="Product name / search query"),
+    category: str = Query("T-Shirts", description="Product category"),
+    marketplaces: str = Query("myntra,ajio,amazon,flipkart", description="Comma-separated marketplace IDs"),
+    count: int = Query(30, ge=4, le=120, description="Number of results per marketplace"),
+    color: Optional[str] = Query(None, description="Color filter (e.g. Black)"),
+    fit: Optional[str] = Query(None, description="Fit filter (e.g. Oversized)"),
+    anchor_price: Optional[float] = Query(None, description="User's product price for relative pricing"),
+):
+    """
+    Search competitor products by product name across selected marketplaces.
+    Returns scraper results enriched with color, fit, brand, pricing for every card.
+    The frontend uses this to populate the Competitor Catalogue tab with products
+    that are genuinely similar to the selected product.
+    """
+    mp_list = [m.strip() for m in marketplaces.split(",") if m.strip()]
+    result = scrape_by_name(
+        product_name=q,
+        category=category,
+        marketplaces=mp_list,
+        count=count,
+        color=color,
+        fit=fit,
+        anchor_price=anchor_price,
+    )
+    return result
 
 
 def _ensure_data(product_id: str, db: Session) -> list[CompetitorData]:
